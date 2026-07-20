@@ -1,0 +1,49 @@
+generated: '2026-07-19'
+method: searched
+source: openapi/get-on-board-openapi-original.yml
+docs: https://www.getonbrd.com/api-doc.html
+summary:
+  types:
+  - http
+  http_schemes:
+  - bearer
+  bearer_formats:
+  - API key
+  - JWT
+  - Board secret
+  oauth2_flows: []
+  api_key_location: https://www.getonbrd.com/companies/[your-company]/api_settings
+schemes:
+- name: ApiKeyAuth
+  type: http
+  scheme: bearer
+  bearerFormat: API key
+  audience: company
+  description: >-
+    Company authentication for the private Companies API. Send
+    `Authorization: Bearer <api_key>`. The key is on the company profile page
+    under the "API access" section. Requires an active subscription plan that
+    includes API access; endpoints return 404 if the subscription expires.
+  sources:
+  - openapi/get-on-board-openapi-original.yml
+- name: BearerAuth
+  type: http
+  scheme: bearer
+  bearerFormat: JWT
+  audience: professional
+  description: >-
+    Professional JWT token obtained/refreshed via POST /api/v0/auth_tokens.
+    Used for professional-facing endpoints (matching jobs, webhook endpoints).
+  sources:
+  - openapi/get-on-board-openapi-original.yml
+- name: BoardSecretKey
+  type: http
+  scheme: bearer
+  bearerFormat: Board secret
+  audience: board
+  description: >-
+    Board+ HMAC secret key. Send `Authorization: Bearer <board_secret_key>`.
+    A legacy query-string form (?secret_key=...) is still accepted but
+    discouraged because secrets leak into logs, history, and referrers.
+  sources:
+  - openapi/get-on-board-openapi-original.yml
