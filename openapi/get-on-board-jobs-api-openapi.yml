@@ -1,0 +1,3537 @@
+openapi: 3.0.3
+info:
+  title: Get on Board Applications Jobs API
+  version: 0.1.0
+  description: "The Get on Board API provides access to the data inside Get on Board, the leading recruitment platform for tech professionals in Latin America.\n\nThere are two facets of the API:\n\n- **Public API** — Open to anyone. Access the same data visible on the platform without logging in: job categories, company profiles, published jobs, and a job search endpoint. No authentication required.\n- **Private API** — Requires authentication. Access your company's private data: jobs, recruitment processes, professionals, and applications. Available to companies with an active subscription plan that includes API access.\n\nBase URL: `https://www.getonbrd.com/api/v0/`\n\nFor bugs, improvement suggestions, or missing features, contact us at team@getonbrd.com.\n\n## Sandbox environment\n\nYou can test any endpoint using the sandbox environment:\n\n```\nhttps://sandbox.getonbrd.dev/api/v0/\n```\n\nWe strongly encourage you to test your API integrations against the sandbox before making live requests in production. The sandbox contains fake data, and certain features like payments may not work.\n\nIf your company wants to test the private API before subscribing, contact us at info@getonbrd.com or via the support chat to discuss temporary access.\n\n## Expanding responses\n\nMany endpoints support the `expand` query parameter to include full related resources instead of ID-only references.\n\n**Default (collapsed)** — Related objects return only `id` and `type`:\n\n```json\n{\n  \"job\": {\n    \"data\": { \"id\": 285, \"type\": \"job\" }\n  }\n}\n```\n\n**Expanded** — Pass `expand[]` to get the full resource with all attributes:\n\n```\nGET /api/v0/applications?expand[]=job&expand[]=professional\n```\n\nYou can expand multiple relationships in a single request. Nested expansion is supported with dot notation (e.g., `expand[]=job.tags`).\n\nSupported expand values vary by endpoint — refer to each endpoint's parameter documentation for available options.\n\n## Pagination and metadata\n\nMost list endpoints return paginated results with a `data` array and a `meta` object:\n\n```json\n{\n  \"data\": [ ... ],\n  \"meta\": {\n    \"page\": 1,\n    \"per_page\": 120,\n    \"total_pages\": 3\n  }\n}\n```\n\n| Parameter  | Type    | Default | Max | Description             |\n|------------|---------|---------|-----|-------------------------|\n| `page`     | integer | 1       | —   | Page number (min 1)     |\n| `per_page` | integer | 120     | 120 | Items per page (min 1)  |\n\nSome collection endpoints intentionally omit pagination metadata because they return bounded reference data or workflow state:\n\n- `GET /api/v0/perks`\n- `GET /api/v0/applications/discard_reasons`\n- `GET /api/v0/processes/{process_id}/phases`\n- `GET /api/v0/webhook_endpoints`\n- `GET /api/v0/webhook_events`\n- `GET /api/v0/matching_jobs` currently ignores `per_page` and omits pagination metadata.\n\n## Date filtering\n\nSome private endpoints support date range filtering using Unix epoch timestamps:\n\n| Parameter | Type    | Description                       |\n|-----------|---------|-----------------------------------|\n| `from`    | integer | Start date (epoch timestamp)      |\n| `to`      | integer | End date (epoch timestamp)        |\n\nInvalid date formats return a `422` error.\n\n## Localization\n\nAPI responses can be localized by setting a language preference. Supported locales: `en` (English), `es` (Spanish), `pt` (Portuguese).\n\n| Parameter | Type   | Description                     |\n|-----------|--------|---------------------------------|\n| `lang`    | string | Locale code: `en`, `es`, or `pt` |\n\nLanguage is resolved in this order:\n\n1. `lang` query parameter (e.g., `?lang=es`)\n2. `Accept-Language` HTTP header\n3. Authenticated user's language preference (private API only)\n4. Default locale\n\nLocalized fields include category names, perk descriptions, country names, and validation error messages. Use `?lang=en` to force English responses.\n\n## Companies Private API\n\nCollection of protected resources and endpoints a subscribed company has access to. Every request needs to be authenticated.\n\n> **Note:** Only companies with an active subscription plan can have access to the private API. The Companies Private API endpoints will return `404` if a subscription expires.\n\n### Authentication\n\nAuthenticate requests by sending the company API key in the `Authorization` header as `Bearer <api_key>`.\n\nThe key can be found in the company's profile page in Get on Board. Look for the section **API access** (`https://www.getonbrd.com/companies/[your-company]/api_settings`).\n\n### How the endpoints work together\n\nThe Companies Private API provides four interconnected endpoints that represent your complete recruitment workflow:\n\n**Jobs** (create postings) → **Applications** (receive candidates) → **Processes** (manage hiring) → **Professionals** (access profiles)\n\n### Core relationships\n\n- **Jobs**: Your job postings. The starting point that attracts candidates.\n- **Applications**: Generated when professionals apply to your jobs.\n- **Processes**: Structured hiring pipelines with phases (screening, interviews, etc.) that organize your recruitment workflow. A job can have multiple processes.\n- **Professionals**: Candidate profiles with detailed information.\n\n### Moving applications between phases\n\nTo move a candidate through your hiring pipeline:\n\n1. List your jobs with `GET /api/v0/jobs`.\n2. Pick a job and list its processes with `GET /api/v0/jobs/{job_id}/processes`. Use the job `id` string returned by `GET /api/v0/jobs`; this is normally a slug, not the numeric relationship ID embedded inside expanded process/job payloads.\n3. List applications for the process with `GET /api/v0/applications?process_id={process_id}`.\n4. Discover available target phases with `GET /api/v0/processes/{process_id}/phases`.\n5. If the target phase has `kind: \"discarded\"`, fetch valid reasons with `GET /api/v0/applications/discard_reasons`.\n6. Move the application with `PATCH /api/v0/applications/{application_id}/phase`.\n\nPhase IDs are numeric. Use a reason `id` from `GET /api/v0/applications/discard_reasons` as `discard_reason` when moving to a discarded phase. Moving an application back to a non-discarded phase clears its stored discard reason.\n\n### Multi-brand posting for ATS partners (company shells)\n\nRecruiting for many client companies through one integration? Authorized partner accounts can create\n**company shells** — public brand profiles (name, logo, description, own company page) for each client —\nand post jobs under those brands with a single API key:\n\n1. Create a shell with `POST /api/v0/company_shells` (a logo is required).\n2. Pass the shell's slug as `company_shell_id` on `POST /api/v0/jobs` or `PUT /api/v0/jobs/{id}`.\n3. The public job page, company profile, feeds, and public API show the client's brand; applications,\n   processes, and billing stay on your partner account.\n\nShell endpoints return `403` for non-partner API keys. Contact Get on Board to enable partner access\nfor your integration.\n\n### Key business rules\n\n- **Professional data access**: The Professionals endpoint has the strictest access controls. You can only access professional profiles when the professional is part of an active hiring process, the professional profile has been \"unlocked\", and you own the hiring process.\n- **Professionals are process-scoped**: Always include `process_id` when listing or retrieving professionals, for example `GET /api/v0/professionals?process_id=123` or `GET /api/v0/professionals/{id}?process_id=123`.\n- **Event payloads are starting points**: Webhook payloads and collapsed relationships identify resources, but some related endpoints still require additional scope such as `process_id`.\n- **Prefer canonical follow-up reads**: When starting from an event or collapsed payload, fetch the resource named by the payload first (for example `GET /api/v0/applications/{application_id}`), then use `expand[]` or process-scoped endpoints as needed.\n- **Data scoping**: All endpoints only return data belonging to your company (jobs you created, applications to your jobs, your hiring processes).\n- **Job moderation**: Jobs must be submitted via `POST /jobs/:id/submit` and approved before going live on the platform.\n- **Expandable relationships**: Use `expand[]=applications`, `expand[]=processes`, etc. to include related data and reduce API calls.\n\n### Read-only smoke test\n\nThe following sequence exercises the public API and the private company workflow without creating, updating, or deleting data:\n\n```bash\ncurl \"https://www.getonbrd.com/api/v0/categories?per_page=3&lang=en\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/jobs?per_page=3&lang=en\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/jobs/JOB_ID_FROM_LIST/processes\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/applications?process_id=PROCESS_ID&expand[]=job&expand[]=professional\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/applications/APPLICATION_ID?expand[]=professional\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/processes/PROCESS_ID/phases\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/professionals?process_id=PROCESS_ID&per_page=2\"\n```"
+servers:
+- url: https://www.getonbrd.com
+  description: Production
+- url: https://sandbox.getonbrd.dev
+  description: Sandbox
+tags:
+- name: Jobs
+  description: Job posting CRUD operations
+paths:
+  /api/v0/jobs:
+    get:
+      summary: List company jobs
+      tags:
+      - Jobs
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        schema:
+          type: string
+        example: Bearer YOUR_API_KEY
+        description: Bearer credential for the authentication scheme required by this endpoint.
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+        example: 1
+        description: Page number, starting at 1.
+      - name: per_page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 120
+        example: 2
+        description: Number of records per page. The default and maximum are usually 120 unless an endpoint documents a different behavior.
+      responses:
+        '200':
+          description: Returns a paginated list of jobs for the authenticated company.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            title:
+                              type: string
+                            description_headline:
+                              nullable: true
+                            description:
+                              type: string
+                            projects:
+                              type: string
+                            functions_headline:
+                              nullable: true
+                            functions:
+                              type: string
+                            benefits_headline:
+                              nullable: true
+                            benefits:
+                              type: string
+                            desirable_headline:
+                              nullable: true
+                            desirable:
+                              type: string
+                            remote:
+                              type: boolean
+                            remote_modality:
+                              type: string
+                            remote_zone:
+                              nullable: true
+                            countries:
+                              type: array
+                              items:
+                                type: string
+                            lang:
+                              type: string
+                            rejected_reasons:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  bad_job:
+                                    type: object
+                                    properties:
+                                      title:
+                                        type: string
+                                      description:
+                                        type: string
+                                    required:
+                                    - title
+                                    - description
+                                required:
+                                - bad_job
+                            category_name:
+                              type: string
+                            perks:
+                              type: array
+                              items: {}
+                            min_salary:
+                              type: integer
+                            max_salary:
+                              type: integer
+                            published_at:
+                              type: integer
+                            response_time_in_days:
+                              type: object
+                              properties:
+                                min:
+                                  nullable: true
+                                max:
+                                  nullable: true
+                              required:
+                              - min
+                              - max
+                            applications_count:
+                              type: integer
+                            location_regions:
+                              type: object
+                              properties:
+                                data:
+                                  type: array
+                                  items: {}
+                              required:
+                              - data
+                            location_tenants:
+                              type: object
+                              properties:
+                                data:
+                                  type: array
+                                  items: {}
+                              required:
+                              - data
+                            location_cities:
+                              type: object
+                              properties:
+                                data:
+                                  type: array
+                                  items:
+                                    type: object
+                                    properties:
+                                      id:
+                                        type: integer
+                                      type:
+                                        type: string
+                                    required:
+                                    - id
+                                    - type
+                              required:
+                              - data
+                            modality:
+                              type: object
+                              properties:
+                                data:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: integer
+                                    type:
+                                      type: string
+                                  required:
+                                  - id
+                                  - type
+                              required:
+                              - data
+                            seniority:
+                              type: object
+                              properties:
+                                data:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: integer
+                                    type:
+                                      type: string
+                                  required:
+                                  - id
+                                  - type
+                              required:
+                              - data
+                            tags:
+                              type: object
+                              properties:
+                                data:
+                                  type: array
+                                  items: {}
+                              required:
+                              - data
+                            state:
+                              type: string
+                            deleted:
+                              type: boolean
+                            questions:
+                              type: object
+                              properties:
+                                data:
+                                  type: array
+                                  items: {}
+                              required:
+                              - data
+                            location_countries:
+                              type: object
+                              properties:
+                                data:
+                                  type: array
+                                  items: {}
+                              required:
+                              - data
+                            submitted_at:
+                              type: integer
+                            created_at:
+                              type: integer
+                            updated_at:
+                              type: integer
+                            company_shell_id:
+                              nullable: true
+                              type: string
+                          required:
+                          - title
+                          - description_headline
+                          - description
+                          - projects
+                          - functions_headline
+                          - functions
+                          - benefits_headline
+                          - benefits
+                          - desirable_headline
+                          - desirable
+                          - remote
+                          - remote_modality
+                          - remote_zone
+                          - countries
+                          - lang
+                          - rejected_reasons
+                          - category_name
+                          - perks
+                          - min_salary
+                          - max_salary
+                          - published_at
+                          - response_time_in_days
+                          - applications_count
+                          - location_regions
+                          - location_tenants
+                          - location_cities
+                          - modality
+                          - seniority
+                          - tags
+                          - state
+                          - deleted
+                          - questions
+                          - location_countries
+                          - submitted_at
+                          - created_at
+                          - updated_at
+                      required:
+                      - id
+                      - type
+                      - attributes
+                  meta:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      per_page:
+                        type: integer
+                      total_pages:
+                        type: integer
+                    required:
+                    - page
+                    - per_page
+                    - total_pages
+                required:
+                - data
+                - meta
+              example:
+                data: []
+                meta:
+                  page: 1
+                  per_page: 120
+                  total_pages: 1
+        '401':
+          description: Returns a paginated list of jobs for the authenticated company.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: (Status 401) Unauthorized access to the API
+                code: unauthorized
+      security:
+      - ApiKeyAuth: []
+      description: To manage candidate phase moves, choose a job from this response and call `GET /api/v0/jobs/{job_id}/processes` with the returned job identifier.
+      operationId: listCompanyPrivateJobs
+    post:
+      summary: Create a job
+      tags:
+      - Jobs
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+        example: Bearer YOUR_API_KEY
+        description: Bearer credential for the authentication scheme required by this endpoint.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                projects:
+                  type: string
+                category_id:
+                  type: string
+                min_salary:
+                  type: string
+                max_salary:
+                  type: string
+                modality_id:
+                  type: string
+                seniority_id:
+                  type: string
+                remote_modality:
+                  type: string
+                  enum:
+                  - no_remote
+                  - temporarily_remote
+                  - remote_local
+                  - fully_remote
+                  - hybrid
+                  description: Work-location policy. Determines which location ID fields are accepted.
+                questions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      title:
+                        type: string
+                      kind:
+                        type: string
+                      ai_generated:
+                        type: string
+                      score:
+                        type: string
+                      choices:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            label:
+                              type: string
+                            value:
+                              type: string
+                          required:
+                          - label
+                          - value
+                    required:
+                    - title
+                    - kind
+                expand:
+                  type: array
+                  items:
+                    type: string
+                functions:
+                  type: string
+                perks:
+                  type: string
+                state:
+                  type: string
+                location_region_ids:
+                  type: array
+                  items:
+                    type: string
+                  nullable: true
+                  description: For `remote_local` jobs only. Region slugs from `GET /api/v0/regions`.
+                location_country_ids:
+                  type: array
+                  items:
+                    type: string
+                  nullable: true
+                  description: For `remote_local` jobs only. Country slugs from `GET /api/v0/countries`.
+                location_city_ids:
+                  nullable: true
+                  type: array
+                  items:
+                    type: integer
+                  description: Required for `no_remote`, `hybrid`, and `temporarily_remote`. Numeric city IDs from `GET /api/v0/cities`.
+                company_shell_id:
+                  type: string
+                  nullable: true
+                  description: Partner accounts only. Slug of one of your company shells (`GET /api/v0/company_shells`) to publicly brand this job as that client company. Omit for a normal job. On update, send `""` to detach the shell. `404` for an unknown or foreign slug; `422` if your account is not partner-enabled.
+              required:
+              - title
+              - description
+              - remote_modality
+              - projects
+              - min_salary
+              - max_salary
+              - seniority_id
+              - modality_id
+              - category_id
+            examples:
+              fully_remote:
+                summary: Fully remote
+                value:
+                  title: Ruby on Rails Developer
+                  description: We are looking for a backend engineer who can own product features, collaborate closely with design, and ship reliable Rails code across a growing platform.
+                  projects: You will work on our ATS and recruiting platform, improve internal APIs, and help keep the hiring workflow stable as more customers integrate with us.
+                  functions: Build Rails features, review code, write tests, and improve the API experience for customers integrating with the platform.
+                  remote_modality: fully_remote
+                  min_salary: 1500
+                  max_salary: 2000
+                  modality_id: 376
+                  seniority_id: 367
+                  category_id: programming
+                  perks: pet_friendly, informal_dresscode, life_insurance
+              remote_local:
+                summary: Remote limited to regions or countries
+                value:
+                  title: Ruby on Rails Developer
+                  description: We are looking for a backend engineer who can own product features, collaborate closely with design, and ship reliable Rails code across a growing platform.
+                  projects: You will work on our ATS and recruiting platform, improve internal APIs, and help keep the hiring workflow stable as more customers integrate with us.
+                  functions: Build Rails features, review code, write tests, and improve the API experience for customers integrating with the platform.
+                  remote_modality: remote_local
+                  min_salary: 1500
+                  max_salary: 2000
+                  modality_id: 376
+                  seniority_id: 367
+                  category_id: programming
+                  perks: pet_friendly, informal_dresscode, life_insurance
+                  location_region_ids:
+                  - latin-america
+                  location_country_ids:
+                  - mexico
+              city_limited:
+                summary: Hybrid, on-site, or temporarily remote
+                value:
+                  title: Ruby on Rails Developer
+                  description: We are looking for a backend engineer who can own product features, collaborate closely with design, and ship reliable Rails code across a growing platform.
+                  projects: You will work on our ATS and recruiting platform, improve internal APIs, and help keep the hiring workflow stable as more customers integrate with us.
+                  functions: Build Rails features, review code, write tests, and improve the API experience for customers integrating with the platform.
+                  remote_modality: hybrid
+                  min_salary: 1500
+                  max_salary: 2000
+                  modality_id: 376
+                  seniority_id: 367
+                  category_id: programming
+                  perks: pet_friendly, informal_dresscode, life_insurance
+                  location_city_ids:
+                  - 1
+                  - 2
+              company_shell:
+                summary: Branded as a company shell (partners only)
+                value:
+                  title: Ruby on Rails Developer
+                  description: We are looking for a backend engineer who can own product features, collaborate closely with design, and ship reliable Rails code across a growing platform.
+                  projects: You will work on our ATS and recruiting platform, improve internal APIs, and help keep the hiring workflow stable as more customers integrate with us.
+                  functions: Build Rails features, review code, write tests, and improve the API experience for customers integrating with the platform.
+                  remote_modality: fully_remote
+                  min_salary: 1500
+                  max_salary: 2000
+                  modality_id: 376
+                  seniority_id: 367
+                  category_id: programming
+                  perks: pet_friendly, informal_dresscode, life_insurance
+                  company_shell_id: client-brand-slug
+      responses:
+        '200':
+          description: Creates a new job posting for the authenticated company.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                          description_headline:
+                            nullable: true
+                          description:
+                            type: string
+                          projects:
+                            type: string
+                          functions_headline:
+                            nullable: true
+                          functions:
+                            type: string
+                          benefits_headline:
+                            nullable: true
+                          benefits:
+                            type: string
+                          desirable_headline:
+                            nullable: true
+                          desirable:
+                            type: string
+                          remote:
+                            type: boolean
+                          remote_modality:
+                            type: string
+                          remote_zone:
+                            nullable: true
+                          countries:
+                            type: array
+                            items:
+                              type: string
+                          lang:
+                            type: string
+                          rejected_reasons:
+                            type: array
+                            items: {}
+                          category_name:
+                            type: string
+                          perks:
+                            type: array
+                            items:
+                              type: string
+                          min_salary:
+                            type: integer
+                          max_salary:
+                            type: integer
+                          published_at:
+                            type: integer
+                          response_time_in_days:
+                            type: object
+                            properties:
+                              min:
+                                nullable: true
+                              max:
+                                nullable: true
+                            required:
+                            - min
+                            - max
+                          applications_count:
+                            type: integer
+                          location_regions:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: string
+                                    type:
+                                      type: string
+                                    attributes:
+                                      type: object
+                                      properties:
+                                        name:
+                                          type: string
+                                      required:
+                                      - name
+                                  required:
+                                  - id
+                                  - type
+                                  - attributes
+                            required:
+                            - data
+                          location_tenants:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: string
+                                    type:
+                                      type: string
+                                    attributes:
+                                      type: object
+                                      properties:
+                                        name:
+                                          type: string
+                                      required:
+                                      - name
+                                  required:
+                                  - id
+                                  - type
+                                  - attributes
+                            required:
+                            - data
+                          location_cities:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: string
+                                    type:
+                                      type: string
+                                    attributes:
+                                      type: object
+                                      properties:
+                                        name:
+                                          type: string
+                                        country:
+                                          type: string
+                                      required:
+                                      - name
+                                      - country
+                                  required:
+                                  - id
+                                  - type
+                                  - attributes
+                            required:
+                            - data
+                          modality:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          seniority:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          tags:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                          state:
+                            type: string
+                          deleted:
+                            type: boolean
+                          questions:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: string
+                                    type:
+                                      type: string
+                                    attributes:
+                                      type: object
+                                      properties:
+                                        slug:
+                                          type: string
+                                        title:
+                                          type: string
+                                        help_text:
+                                          type: string
+                                          nullable: true
+                                        kind:
+                                          type: string
+                                        language:
+                                          type: string
+                                          nullable: true
+                                        required:
+                                          type: boolean
+                                        multiple:
+                                          type: boolean
+                                        choices:
+                                          type: array
+                                          items:
+                                            type: object
+                                            properties:
+                                              label:
+                                                type: string
+                                              value:
+                                                type: string
+                                              correct:
+                                                type: boolean
+                                            required:
+                                            - label
+                                            - value
+                                            - correct
+                                        score:
+                                          type: integer
+                                          nullable: true
+                                        hidden:
+                                          type: boolean
+                                        created_at:
+                                          type: integer
+                                        updated_at:
+                                          type: integer
+                                      required:
+                                      - slug
+                                      - title
+                                      - help_text
+                                      - kind
+                                      - language
+                                      - required
+                                      - multiple
+                                      - choices
+                                      - score
+                                      - hidden
+                                      - created_at
+                                      - updated_at
+                                  required:
+                                  - id
+                                  - type
+                            required:
+                            - data
+                          location_countries:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: string
+                                    type:
+                                      type: string
+                                    attributes:
+                                      type: object
+                                      properties:
+                                        name:
+                                          type: string
+                                      required:
+                                      - name
+                                  required:
+                                  - id
+                                  - type
+                                  - attributes
+                            required:
+                            - data
+                          submitted_at:
+                            type: integer
+                          created_at:
+                            type: integer
+                          updated_at:
+                            type: integer
+                          company_shell_id:
+                            nullable: true
+                            type: string
+                        required:
+                        - title
+                        - description_headline
+                        - description
+                        - projects
+                        - functions_headline
+                        - functions
+                        - benefits_headline
+                        - benefits
+                        - desirable_headline
+                        - desirable
+                        - remote
+                        - remote_modality
+                        - remote_zone
+                        - countries
+                        - lang
+                        - rejected_reasons
+                        - category_name
+                        - perks
+                        - min_salary
+                        - max_salary
+                        - published_at
+                        - response_time_in_days
+                        - applications_count
+                        - location_regions
+                        - location_tenants
+                        - location_cities
+                        - modality
+                        - seniority
+                        - tags
+                        - state
+                        - deleted
+                        - questions
+                        - location_countries
+                        - submitted_at
+                        - created_at
+                        - updated_at
+                    required:
+                    - id
+                    - type
+                    - attributes
+                  meta:
+                    type: object
+                    properties:
+                      warnings:
+                        type: object
+                        properties:
+                          questions:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                code:
+                                  type: string
+                                detail:
+                                  type: string
+                                at_index:
+                                  type: integer
+                                provided:
+                                  type: string
+                                  nullable: true
+                                errors:
+                                  type: object
+                                  properties:
+                                    title:
+                                      type: array
+                                      items:
+                                        type: string
+                                    choices:
+                                      type: array
+                                      items:
+                                        type: string
+                                    base:
+                                      type: array
+                                      items:
+                                        type: string
+                                  nullable: true
+                              required:
+                              - code
+                        required:
+                        - questions
+                    required:
+                    - warnings
+                required:
+                - data
+              example:
+                data:
+                  id: random-consultant-user-158-remote
+                  type: job
+                  attributes:
+                    title: Random Consultant
+                    description_headline: null
+                    description: We are looking for a skilled RoR DevWe are looking for a skilled RoR DevWe are looking for a skilled RoR DevWe are looking for a skilled RoR DevWe are looking for a skilled RoR DevWe are looking for a skilled RoR DevWe are looking for a skilled RoR DevWe are looking for a skilled RoR DevWe are looking for a skilled RoR DevWe are looking for a skilled RoR Dev
+                    projects: You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.
+                    functions_headline: null
+                    functions: The functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role are
+                    benefits_headline: null
+                    benefits: ''
+                    desirable_headline: null
+                    desirable: ''
+                    remote: true
+                    remote_modality: fully_remote
+                    remote_zone: null
+                    countries:
+                    - Remote
+                    lang: lang_not_specified
+                    rejected_reasons: []
+                    category_name: Programming
+                    perks:
+                    - pet_friendly
+                    - informal_dresscode
+                    - life_insurance
+                    - remote_full
+                    min_salary: 1500
+                    max_salary: 2000
+                    published_at: 0
+                    response_time_in_days:
+                      min: null
+                      max: null
+                    applications_count: 0
+                    location_regions:
+                      data: []
+                    location_tenants:
+                      data: []
+                    location_cities:
+                      data: []
+                    modality:
+                      data:
+                        id: 222
+                        type: modality
+                    seniority:
+                      data:
+                        id: 231
+                        type: seniority
+                    tags:
+                      data: []
+                    state: draft
+                    deleted: false
+                    questions:
+                      data: []
+                    location_countries:
+                      data: []
+                    submitted_at: 0
+                    created_at: 1784217384
+                    updated_at: 1784217384
+                    company_shell_id: null
+                meta:
+                  warnings:
+                    questions:
+                    - code: invalid_question
+                      at_index: 0
+                      errors:
+                        choices:
+                        - Debes agregar al menos una opción.
+        '401':
+          description: Creates a new job posting for the authenticated company.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: (Status 401) Unauthorized access.
+                code: unauthorized
+        '404':
+          description: Creates a new job posting for the authenticated company.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: Record not found
+                code: not_found
+        '422':
+          description: Creates a new job posting for the authenticated company.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: object
+                    properties:
+                      category:
+                        type: array
+                        items:
+                          type: string
+                      min_salary:
+                        type: array
+                        items:
+                          type: string
+                      max_salary:
+                        type: array
+                        items:
+                          type: string
+                      location_cities:
+                        type: array
+                        items:
+                          type: string
+                      seniority:
+                        type: array
+                        items:
+                          type: string
+                      description:
+                        type: array
+                        items:
+                          type: string
+                      projects:
+                        type: array
+                        items:
+                          type: string
+                      title:
+                        type: array
+                        items:
+                          type: string
+                      description_plain_text:
+                        type: array
+                        items:
+                          type: string
+                      projects_plain_text:
+                        type: array
+                        items:
+                          type: string
+                      company_shell:
+                        type: array
+                        items:
+                          type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message:
+                  category:
+                  - 'Category could not be inferred for job title: Random Consultant'
+                  min_salary:
+                  - You must specify a salary range.
+                  - Please enter only numbers here.
+                  max_salary:
+                  - You must specify a salary range.
+                  - Please enter only numbers here.
+                  location_cities:
+                  - For this job modality, the location_cities field (using city IDs) is required. Use the public Cities API to get a list of the city IDs.
+                  seniority:
+                  - Seniority not found or invalid
+                  description:
+                  - This field cannot be blank.
+                  projects:
+                  - This field cannot be blank.
+                  title:
+                  - Enter the job title
+                  description_plain_text:
+                  - This field must be at least 200 characters.
+                  projects_plain_text:
+                  - This field must be at least 300 characters.
+                  company_shell:
+                  - is invalid
+                code: unprocessable_content
+      description: '### Remote modality and locations
+
+
+        `remote_modality` controls which location fields the Jobs API reads:
+
+
+        - `fully_remote`: do not send location fields. Regions, countries, and cities are cleared.
+
+        - `remote_local`: send `location_region_ids` and/or `location_country_ids` as slugs from `GET /api/v0/regions` and `GET /api/v0/countries`.
+
+        - `no_remote`, `hybrid`, `temporarily_remote`: send `location_city_ids` as numeric city IDs from `GET /api/v0/cities`.
+
+
+        Unknown or wrong identifier types resolve to empty locations and can return `422`.
+
+        `location_city_ids` uses city IDs, not city names, country slugs, or `tenant_city_ids`.
+
+
+        Typical job publishing flow: create the job with `POST /api/v0/jobs`, review validation errors if the response is `422`, then submit the saved draft with `POST /api/v0/jobs/{job_id}/submit` so Get on Board can moderate it before publication. Use `lang=en` while integrating if you want English validation messages.
+
+
+        ### Posting on behalf of a client brand (company shells)
+
+
+        Partner accounts (typically ATS integrations posting for many client companies) can brand a job
+
+        as one of their **company shells** instead of their own account: send `company_shell_id` with the
+
+        shell''s slug (from `GET /api/v0/company_shells`). Every public surface — job page, company profile
+
+        link, logo, feeds, and public API — then shows the client company''s identity, while applications,
+
+        processes, and billing stay on your account. Omit the field for a normal job; on update, send `""`
+
+        to detach the shell. See the **Company shells** section to create and manage shells.'
+      operationId: createCompanyPrivateJob
+  /api/v0/jobs/{id}:
+    delete:
+      summary: Delete a job
+      tags:
+      - Jobs
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        schema:
+          type: string
+        example: Bearer YOUR_API_KEY
+        description: Bearer credential for the authentication scheme required by this endpoint.
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        example: javascript-ninja-user-124-santiago
+        description: Job slug from `GET /api/v0/jobs`.
+      responses:
+        '200':
+          description: Soft-deletes a job posting by its slug.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                required:
+                - status
+              example:
+                status: ok
+        '401':
+          description: Soft-deletes a job posting by its slug.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: (Status 401) Unauthorized access.
+                code: unauthorized
+        '422':
+          description: Soft-deletes a job posting by its slug.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: Already deleted
+                code: unprocessable_content
+      operationId: deleteCompanyPrivateJob
+    get:
+      summary: Retrieve a job
+      tags:
+      - Jobs
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        schema:
+          type: string
+        example: Bearer YOUR_API_KEY
+        description: Bearer credential for the authentication scheme required by this endpoint.
+      - name: expand
+        in: query
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+        example:
+        - questions
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        example: javascript-ninja-user-120-santiago-b95f
+        description: Job slug from `GET /api/v0/jobs`.
+      responses:
+        '200':
+          description: Returns the details of a specific job by its slug.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                          description_headline:
+                            nullable: true
+                          description:
+                            type: string
+                          projects:
+                            type: string
+                          functions_headline:
+                            nullable: true
+                          functions:
+                            type: string
+                          benefits_headline:
+                            nullable: true
+                          benefits:
+                            type: string
+                          desirable_headline:
+                            nullable: true
+                          desirable:
+                            type: string
+                          remote:
+                            type: boolean
+                          remote_modality:
+                            type: string
+                          remote_zone:
+                            nullable: true
+                          countries:
+                            type: array
+                            items:
+                              type: string
+                          lang:
+                            type: string
+                          rejected_reasons:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                bad_job:
+                                  type: object
+                                  properties:
+                                    title:
+                                      type: string
+                                    description:
+                                      type: string
+                                  required:
+                                  - title
+                                  - description
+                              required:
+                              - bad_job
+                          category_name:
+                            type: string
+                          perks:
+                            type: array
+                            items: {}
+                          min_salary:
+                            type: integer
+                          max_salary:
+                            type: integer
+                          published_at:
+                            type: integer
+                          response_time_in_days:
+                            type: object
+                            properties:
+                              min:
+                                nullable: true
+                              max:
+                                nullable: true
+                            required:
+                            - min
+                            - max
+                          applications_count:
+                            type: integer
+                          location_regions:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                          location_tenants:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                          location_cities:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: integer
+                                    type:
+                                      type: string
+                                  required:
+                                  - id
+                                  - type
+                            required:
+                            - data
+                          modality:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          seniority:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          tags:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                          state:
+                            type: string
+                          deleted:
+                            type: boolean
+                          questions:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: integer
+                                    type:
+                                      type: string
+                                    attributes:
+                                      type: object
+                                      properties:
+                                        slug:
+                                          type: string
+                                        title:
+                                          type: string
+                                        help_text:
+                                          type: string
+                                        kind:
+                                          type: string
+                                        language:
+                                          nullable: true
+                                        required:
+                                          type: boolean
+                                        multiple:
+                                          type: boolean
+                                        choices:
+                                          type: array
+                                          items: {}
+                                        score:
+                                          nullable: true
+                                        hidden:
+                                          type: boolean
+                                        created_at:
+                                          type: integer
+                                        updated_at:
+                                          type: integer
+                                      required:
+                                      - slug
+                                      - title
+                                      - help_text
+                                      - kind
+                                      - language
+                                      - required
+                                      - multiple
+                                      - choices
+                                      - score
+                                      - hidden
+                                      - created_at
+                                      - updated_at
+                                  required:
+                                  - id
+                                  - type
+                            required:
+                            - data
+                          location_countries:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                          submitted_at:
+                            type: integer
+                          created_at:
+                            type: integer
+                          updated_at:
+                            type: integer
+                          company_shell_id:
+                            nullable: true
+                        required:
+                        - title
+                        - description_headline
+                        - description
+                        - projects
+                        - functions_headline
+                        - functions
+                        - benefits_headline
+                        - benefits
+                        - desirable_headline
+                        - desirable
+                        - remote
+                        - remote_modality
+                        - remote_zone
+                        - countries
+                        - lang
+                        - rejected_reasons
+                        - category_name
+                        - perks
+                        - min_salary
+                        - max_salary
+                        - published_at
+                        - response_time_in_days
+                        - applications_count
+                        - location_regions
+                        - location_tenants
+                        - location_cities
+                        - modality
+                        - seniority
+                        - tags
+                        - state
+                        - deleted
+                        - questions
+                        - location_countries
+                        - submitted_at
+                        - created_at
+                        - updated_at
+                    required:
+                    - id
+                    - type
+                    - attributes
+                required:
+                - data
+              example:
+                data:
+                  id: javascript-ninja-user-120-santiago-b95f
+                  type: job
+                  attributes:
+                    title: JavaScript Ninja
+                    description_headline: null
+                    description: Build reliable products for technical hiring teams.
+                    projects: Build reliable products for technical hiring teams.
+                    functions_headline: null
+                    functions: Build reliable products for technical hiring teams.
+                    benefits_headline: null
+                    benefits: Build reliable products for technical hiring teams.
+                    desirable_headline: null
+                    desirable: ''
+                    remote: false
+                    remote_modality: no_remote
+                    remote_zone: null
+                    countries:
+                    - Chile
+                    lang: lang_not_specified
+                    rejected_reasons:
+                    - bad_job:
+                        title: Low salary
+                        description: We only publish jobs offering market-rate salaries or higher, according to a %{seniority} position. The salary range for this job is lower than the minimum expected. Consider increasing the salary level, or lowering the seniority of the position.
+                    category_name: Programming
+                    perks: []
+                    min_salary: 1500
+                    max_salary: 2000
+                    published_at: 0
+                    response_time_in_days:
+                      min: null
+                      max: null
+                    applications_count: 0
+                    location_regions:
+                      data: []
+                    location_tenants:
+                      data: []
+                    location_cities:
+                      data:
+                      - id: 1
+                        type: location_city
+                    modality:
+                      data:
+                        id: 185
+                        type: modality
+                    seniority:
+                      data:
+                        id: 194
+                        type: seniority
+                    tags:
+                      data: []
+                    state: rejected
+                    deleted: false
+                    questions:
+                      data: []
+                    location_countries:
+                      data: []
+                    submitted_at: 1784044578
+                    created_at: 1784217378
+                    updated_at: 1784217378
+                    company_shell_id: null
+        '401':
+          description: Returns the details of a specific job by its slug.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: (Status 401) Unauthorized access to the API
+                code: unauthorized
+        '404':
+          description: Returns the details of a specific job by its slug.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: Record not found
+                code: not_found
+      operationId: retrieveCompanyPrivateJob
+    put:
+      summary: Update a job
+      tags:
+      - Jobs
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        schema:
+          type: string
+        example: Bearer YOUR_API_KEY
+        description: Bearer credential for the authentication scheme required by this endpoint.
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        example: javascript-ninja-user-144-santiago
+        description: Job slug from `GET /api/v0/jobs`.
+      responses:
+        '200':
+          description: Updates an existing job posting by its slug.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                          description_headline:
+                            nullable: true
+                          description:
+                            type: string
+                          projects:
+                            type: string
+                          functions_headline:
+                            nullable: true
+                          functions:
+                            type: string
+                          benefits_headline:
+                            nullable: true
+                          benefits:
+                            type: string
+                          desirable_headline:
+                            nullable: true
+                          desirable:
+                            type: string
+                          remote:
+                            type: boolean
+                          remote_modality:
+                            type: string
+                          remote_zone:
+                            nullable: true
+                          countries:
+                            type: array
+                            items:
+                              type: string
+                          lang:
+                            type: string
+                          rejected_reasons:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                bad_job:
+                                  type: object
+                                  properties:
+                                    title:
+                                      type: string
+                                    description:
+                                      type: string
+                                  required:
+                                  - title
+                                  - description
+                              required:
+                              - bad_job
+                          category_name:
+                            type: string
+                          perks:
+                            type: array
+                            items:
+                              type: string
+                          min_salary:
+                            type: integer
+                          max_salary:
+                            type: integer
+                          published_at:
+                            type: integer
+                          response_time_in_days:
+                            type: object
+                            properties:
+                              min:
+                                nullable: true
+                              max:
+                                nullable: true
+                            required:
+                            - min
+                            - max
+                          applications_count:
+                            type: integer
+                          location_regions:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                          location_tenants:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                          location_cities:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: integer
+                                    type:
+                                      type: string
+                                  required:
+                                  - id
+                                  - type
+                            required:
+                            - data
+                          modality:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          seniority:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          tags:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                          state:
+                            type: string
+                          deleted:
+                            type: boolean
+                          questions:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: integer
+                                    type:
+                                      type: string
+                                    attributes:
+                                      type: object
+                                      properties:
+                                        slug:
+                                          type: string
+                                        title:
+                                          type: string
+                                        help_text:
+                                          type: string
+                                          nullable: true
+                                        kind:
+                                          type: string
+                                        language:
+                                          nullable: true
+                                          type: string
+                                        required:
+                                          type: boolean
+                                        multiple:
+                                          type: boolean
+                                        choices:
+                                          type: array
+                                          items: {}
+                                        score:
+                                          nullable: true
+                                        hidden:
+                                          type: boolean
+                                        created_at:
+                                          type: integer
+                                        updated_at:
+                                          type: integer
+                                      required:
+                                      - slug
+                                      - title
+                                      - help_text
+                                      - kind
+                                      - language
+                                      - required
+                                      - multiple
+                                      - choices
+                                      - score
+                                      - hidden
+                                      - created_at
+                                      - updated_at
+                                  required:
+                                  - id
+                                  - type
+                            required:
+                            - data
+                          location_countries:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                          submitted_at:
+                            type: integer
+                          created_at:
+                            type: integer
+                          updated_at:
+                            type: integer
+                          company_shell_id:
+                            nullable: true
+                            type: string
+                        required:
+                        - title
+                        - description_headline
+                        - description
+                        - projects
+                        - functions_headline
+                        - functions
+                        - benefits_headline
+                        - benefits
+                        - desirable_headline
+                        - desirable
+                        - remote
+                        - remote_modality
+                        - remote_zone
+                        - countries
+                        - lang
+                        - rejected_reasons
+                        - category_name
+                        - perks
+                        - min_salary
+                        - max_salary
+                        - published_at
+                        - response_time_in_days
+                        - applications_count
+                        - location_regions
+                        - location_tenants
+                        - location_cities
+                        - modality
+                        - seniority
+                        - tags
+                        - state
+                        - deleted
+                        - questions
+                        - location_countries
+                        - submitted_at
+                        - created_at
+                        - updated_at
+                    required:
+                    - id
+                    - type
+                    - attributes
+                  meta:
+                    type: object
+                    properties:
+                      warnings:
+                        type: object
+                        properties:
+                          questions:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                code:
+                                  type: string
+                                detail:
+                                  type: string
+                                at_index:
+                                  type: integer
+                              required:
+                              - code
+                              - detail
+                              - at_index
+                        required:
+                        - questions
+                    required:
+                    - warnings
+                required:
+                - data
+              example:
+                data:
+                  id: javascript-ninja-user-143-santiago
+                  type: job
+                  attributes:
+                    title: Updated Draft Job
+                    description_headline: null
+                    description: Build reliable products for technical hiring teams.
+                    projects: Build reliable products for technical hiring teams.
+                    functions_headline: null
+                    functions: Build reliable products for technical hiring teams.
+                    benefits_headline: null
+                    benefits: Build reliable products for technical hiring teams.
+                    desirable_headline: null
+                    desirable: ''
+                    remote: false
+                    remote_modality: no_remote
+                    remote_zone: null
+                    countries:
+                    - Chile
+                    lang: lang_not_specified
+                    rejected_reasons: []
+                    category_name: Programming
+                    perks: []
+                    min_salary: 1500
+                    max_salary: 2000
+                    published_at: 0
+                    response_time_in_days:
+                      min: null
+                      max: null
+                    applications_count: 0
+                    location_regions:
+                      data: []
+                    location_tenants:
+                      data: []
+                    location_cities:
+                      data:
+                      - id: 1
+                        type: location_city
+                    modality:
+                      data:
+                        id: 210
+                        type: modality
+                    seniority:
+                      data:
+                        id: 219
+                        type: seniority
+                    tags:
+                      data: []
+                    state: draft
+                    deleted: false
+                    questions:
+                      data: []
+                    location_countries:
+                      data: []
+                    submitted_at: 0
+                    created_at: 1784217382
+                    updated_at: 1784217382
+                    company_shell_id: null
+                meta:
+                  warnings:
+                    questions:
+                    - code: question_not_found
+                      detail: Question with slug 'non-existent-slug' not found in this job
+                      at_index: 0
+        '401':
+          description: Updates an existing job posting by its slug.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: (Status 401) Unauthorized access.
+                code: unauthorized
+        '404':
+          description: Updates an existing job posting by its slug.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: Record not found
+                code: not_found
+        '422':
+          description: Updates an existing job posting by its slug.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: object
+                    properties:
+                      title:
+                        type: array
+                        items:
+                          type: string
+                      modality:
+                        type: array
+                        items:
+                          type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message:
+                  title:
+                  - Enter the job title
+                  modality:
+                  - must be declared before submitting for moderation
+                code: unprocessable_content
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                expand:
+                  type: array
+                  items:
+                    type: string
+                questions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      slug:
+                        type: string
+                      title:
+                        type: string
+                      kind:
+                        type: string
+                      id:
+                        type: string
+                      language:
+                        type: string
+                      hidden:
+                        type: string
+                title:
+                  type: string
+                description:
+                  type: string
+                remote_modality:
+                  type: string
+                  enum:
+                  - no_remote
+                  - temporarily_remote
+                  - remote_local
+                  - fully_remote
+                  - hybrid
+                  description: Work-location policy. Determines which location ID fields are accepted.
+                location_region_ids:
+                  type: array
+                  items:
+                    type: string
+                  description: For `remote_local` jobs only. Region slugs from `GET /api/v0/regions`.
+                location_country_ids:
+                  type: array
+                  items:
+                    type: string
+                  description: For `remote_local` jobs only. Country slugs from `GET /api/v0/countries`.
+                location_city_ids:
+                  type: array
+                  items:
+                    type: integer
+                  description: Required for `no_remote`, `hybrid`, and `temporarily_remote`. Numeric city IDs from `GET /api/v0/cities`.
+                company_shell_id:
+                  type: string
+                  nullable: true
+                  description: Partner accounts only. Slug of one of your company shells (`GET /api/v0/company_shells`) to publicly brand this job as that client company. Omit for a normal job. On update, send `""` to detach the shell. `404` for an unknown or foreign slug; `422` if your account is not partner-enabled.
+            example:
+              title: Updated Ruby on Rails Developer
+              description: We are updating this role with a clearer scope, stronger expectations, and a more complete explanation of the work the engineer will own.
+              projects: You will keep improving our Rails application, internal APIs, and the workflows companies use to manage hiring.
+              functions: Ship features, review pull requests, improve observability, and maintain a stable customer-facing API.
+              min_salary: 2000
+              max_salary: 2800
+              perks: pet_friendly
+      description: '### Remote modality and locations
+
+
+        `remote_modality` controls which location fields the Jobs API reads:
+
+
+        - `fully_remote`: do not send location fields. Regions, countries, and cities are cleared.
+
+        - `remote_local`: send `location_region_ids` and/or `location_country_ids` as slugs from `GET /api/v0/regions` and `GET /api/v0/countries`.
+
+        - `no_remote`, `hybrid`, `temporarily_remote`: send `location_city_ids` as numeric city IDs from `GET /api/v0/cities`.
+
+
+        Unknown or wrong identifier types resolve to empty locations and can return `422`.
+
+        `location_city_ids` uses city IDs, not city names, country slugs, or `tenant_city_ids`.
+
+
+        ### Posting on behalf of a client brand (company shells)
+
+
+        Partner accounts (typically ATS integrations posting for many client companies) can brand a job
+
+        as one of their **company shells** instead of their own account: send `company_shell_id` with the
+
+        shell''s slug (from `GET /api/v0/company_shells`). Every public surface — job page, company profile
+
+        link, logo, feeds, and public API — then shows the client company''s identity, while applications,
+
+        processes, and billing stay on your account. Omit the field for a normal job; on update, send `""`
+
+        to detach the shell. See the **Company shells** section to create and manage shells.'
+      operationId: updateCompanyPrivateJob
+  /api/v0/jobs/{job_id}/processes:
+    get:
+      summary: List job processes
+      tags:
+      - Jobs
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        schema:
+          type: string
+        example: Bearer YOUR_API_KEY
+        description: Bearer credential for the authentication scheme required by this endpoint.
+      - name: active
+        in: query
+        required: false
+        schema:
+          type: string
+        example: 'true'
+      - name: from
+        in: query
+        required: false
+        schema:
+          oneOf:
+          - type: string
+          - type: integer
+          type: integer
+          format: int64
+        example: 1783958184
+        description: Start of the date range as a Unix epoch timestamp.
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+        example: javascript-ninja-user-169-santiago
+        description: Job slug or identifier from `GET /api/v0/jobs`.
+      - name: per_page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 120
+        example: 1
+        description: Number of records per page. The default and maximum are usually 120 unless an endpoint documents a different behavior.
+      - name: to
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int64
+        example: 1784130984
+        description: End of the date range as a Unix epoch timestamp.
+      responses:
+        '200':
+          description: Returns a paginated list of hiring processes for a specific job.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            active:
+                              type: boolean
+                            unlocked:
+                              type: boolean
+                            featured:
+                              type: boolean
+                            expires_on:
+                              type: integer
+                            created_at:
+                              type: integer
+                            updated_at:
+                              type: integer
+                            featured_at:
+                              type: integer
+                            closed_at:
+                              type: integer
+                            job:
+                              type: object
+                              properties:
+                                data:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: integer
+                                    type:
+                                      type: string
+                                  required:
+                                  - id
+                                  - type
+                              required:
+                              - data
+                            phases:
+                              type: object
+                              properties:
+                                data:
+                                  type: array
+                                  items: {}
+                              required:
+                              - data
+                          required:
+                          - active
+                          - unlocked
+                          - featured
+                          - expires_on
+                          - created_at
+                          - updated_at
+                          - featured_at
+                          - closed_at
+                          - job
+                          - phases
+                      required:
+                      - id
+                      - type
+                      - attributes
+                  meta:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      per_page:
+                        type: integer
+                      total_pages:
+                        type: integer
+                    required:
+                    - page
+                    - per_page
+                    - total_pages
+                required:
+                - data
+                - meta
+              example:
+                data:
+                - id: '1'
+                  type: process
+                  attributes:
+                    active: true
+                    unlocked: false
+                    featured: false
+                    expires_on: 0
+                    created_at: 1784217385
+                    updated_at: 1784217385
+                    featured_at: 0
+                    closed_at: 0
+                    job:
+                      data:
+                        id: 225
+                        type: job
+                    phases:
+                      data: []
+                meta:
+                  page: 1
+                  per_page: 120
+                  total_pages: 1
+        '401':
+          description: Returns a paginated list of hiring processes for a specific job.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: (Status 401) Unauthorized access.
+                code: unauthorized
+        '422':
+          description: Returns a paginated list of hiring processes for a specific job.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: Invalid date formats in paremeters. Use an Epoch time format.
+                code: unprocessable_content
+      description: Use a returned process `id` with `GET /api/v0/processes/{process_id}/phases` to discover target phases, and with `GET /api/v0/applications?process_id={process_id}` to list applications in that pipeline.
+      operationId: listJobProcesses
+  /api/v0/jobs/{job_id}/publish:
+    post:
+      summary: Republish a job
+      tags:
+      - Jobs
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        schema:
+          type: string
+        example: Bearer YOUR_API_KEY
+        description: Bearer credential for the authentication scheme required by this endpoint.
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+        example: javascript-ninja-user-279-santiago
+        description: Job slug or identifier from `GET /api/v0/jobs`.
+      responses:
+        '200':
+          description: Republishes an owned unpublished job without using the delete flow.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                          description_headline:
+                            nullable: true
+                          description:
+                            type: string
+                          projects:
+                            type: string
+                          functions_headline:
+                            nullable: true
+                          functions:
+                            type: string
+                          benefits_headline:
+                            nullable: true
+                          benefits:
+                            type: string
+                          desirable_headline:
+                            nullable: true
+                          desirable:
+                            type: string
+                          remote:
+                            type: boolean
+                          remote_modality:
+                            type: string
+                          remote_zone:
+                            nullable: true
+                          countries:
+                            type: array
+                            items:
+                              type: string
+                          lang:
+                            type: string
+                          rejected_reasons:
+                            type: array
+                            items: {}
+                          category_name:
+                            type: string
+                          perks:
+                            type: array
+                            items: {}
+                          min_salary:
+                            type: integer
+                          max_salary:
+                            type: integer
+                          published_at:
+                            type: integer
+                          response_time_in_days:
+                            type: object
+                            properties:
+                              min:
+                                nullable: true
+                              max:
+                                nullable: true
+                            required:
+                            - min
+                            - max
+                          applications_count:
+                            type: integer
+                          location_regions:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                          location_tenants:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                          location_cities:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: integer
+                                    type:
+                                      type: string
+                                  required:
+                                  - id
+                                  - type
+                            required:
+                            - data
+                          modality:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          seniority:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          tags:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                          state:
+                            type: string
+                          company_shell_id:
+                            nullable: true
+                          deleted:
+                            type: boolean
+                          questions:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                          location_countries:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                          submitted_at:
+                            type: integer
+                          created_at:
+                            type: integer
+                          updated_at:
+                            type: integer
+                        required:
+                        - title
+                        - description_headline
+                        - description
+                        - projects
+                        - functions_headline
+                        - functions
+                        - benefits_headline
+                        - benefits
+                        - desirable_headline
+                        - desirable
+                        - remote
+                        - remote_modality
+                        - remote_zone
+                        - countries
+                        - lang
+                        - rejected_reasons
+                        - category_name
+                        - perks
+                        - min_salary
+                        - max_salary
+                        - published_at
+                        - response_time_in_days
+                        - applications_count
+                        - location_regions
+                        - location_tenants
+                        - location_cities
+                        - modality
+                        - seniority
+                        - tags
+                        - state
+                        - company_shell_id
+                        - deleted
+                        - questions
+                        - location_countries
+                        - submitted_at
+                        - created_at
+                        - updated_at
+                    required:
+                    - id
+                    - type
+                    - attributes
+                required:
+                - data
+              example:
+                data:
+                  id: javascript-ninja-user-279-santiago
+                  type: job
+                  attributes:
+                    title: JavaScript Ninja
+                    description_headline: null
+                    description: Build reliable products for technical hiring teams.
+                    projects: Build reliable products for technical hiring teams.
+                    functions_headline: null
+                    functions: Build reliable products for technical hiring teams.
+                    benefits_headline: null
+                    benefits: Build reliable products for technical hiring teams.
+                    desirable_headline: null
+                    desirable: ''
+                    remote: false
+                    remote_modality: no_remote
+                    remote_zone: null
+                    countries:
+                    - Chile
+                    lang: lang_not_specified
+                    rejected_reasons: []
+                    category_name: Programming
+                    perks: []
+                    min_salary: 1500
+                    max_salary: 2000
+                    published_at: 1784217405
+                    response_time_in_days:
+                      min: null
+                      max: null
+                    applications_count: 0
+                    location_regions:
+                      data: []
+                    location_tenants:
+                      data: []
+                    location_cities:
+                      data:
+                      - id: 1
+                        type: location_city
+                    modality:
+                      data:
+                        id: 323
+                        type: modality
+                    seniority:
+                      data:
+                        id: 332
+                        type: seniority
+                    tags:
+                      data: []
+                    state: published
+                    company_shell_id: null
+                    deleted: false
+                    questions:
+                      data: []
+                    location_countries:
+                      data: []
+                    submitted_at: 0
+                    created_at: 1784217405
+                    updated_at: 1784217405
+        '401':
+          description: Republishes an owned unpublished job without using the delete flow.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: (Status 401) Unauthorized access to the API
+                code: unauthorized
+        '404':
+          description: Republishes an owned unpublished job without using the delete flow.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: Record not found
+                code: not_found
+        '422':
+          description: Republishes an owned unpublished job without using the delete flow.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: The job could not be published from its current state
+                code: unprocessable_content
+      operationId: publishCompanyPrivateJob
+      description: Use this only for jobs your company owns that are currently unpublished. It restores publication without creating a new job.
+  /api/v0/jobs/{job_id}/questions/{id}:
+    delete:
+      summary: Delete a job question
+      tags:
+      - Jobs
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+        example: Bearer YOUR_API_KEY
+        description: Bearer credential for the authentication scheme required by this endpoint.
+      - name: id
+        in: path
+        required: true
+        schema:
+          oneOf:
+          - type: integer
+          - type: string
+          type: string
+        example: 20
+        description: Screening question ID or slug.
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+        example: javascript-ninja-user-108-santiago
+        description: Job slug or identifier from `GET /api/v0/jobs`.
+      responses:
+        '200':
+          description: Deletes a screening question from a job by ID or slug.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                required:
+                - status
+              example:
+                status: ok
+        '404':
+          description: Deletes a screening question from a job by ID or slug.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: Record not found
+                code: not_found
+      operationId: deleteJobQuestion
+  /api/v0/jobs/{job_id}/submit:
+    post:
+      summary: Submit a job
+      tags:
+      - Jobs
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        schema:
+          type: string
+        example: Bearer YOUR_API_KEY
+        description: Bearer credential for the authentication scheme required by this endpoint.
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+        example: javascript-ninja-user-176-santiago
+        description: Job slug or identifier from `GET /api/v0/jobs`.
+      responses:
+        '202':
+          description: Submits a draft or rejected job for moderation approval.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                          description_headline:
+                            nullable: true
+                          description:
+                            type: string
+                          projects:
+                            type: string
+                          functions_headline:
+                            nullable: true
+                          functions:
+                            type: string
+                          benefits_headline:
+                            nullable: true
+                          benefits:
+                            type: string
+                          desirable_headline:
+                            nullable: true
+                          desirable:
+                            type: string
+                          remote:
+                            type: boolean
+                          remote_modality:
+                            type: string
+                          remote_zone:
+                            nullable: true
+                          countries:
+                            type: array
+                            items:
+                              type: string
+                          lang:
+                            type: string
+                          rejected_reasons:
+                            type: array
+                            items: {}
+                          category_name:
+                            type: string
+                          perks:
+                            type: array
+                            items: {}
+                          min_salary:
+                            type: integer
+                          max_salary:
+                            type: integer
+                          published_at:
+                            type: integer
+                          response_time_in_days:
+                            type: object
+                            properties:
+                              min:
+                                nullable: true
+                              max:
+                                nullable: true
+                            required:
+                            - min
+                            - max
+                          applications_count:
+                            type: integer
+                          location_regions:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                          location_tenants:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                          location_cities:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: integer
+                                    type:
+                                      type: string
+                                  required:
+                                  - id
+                                  - type
+                            required:
+                            - data
+                          modality:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          seniority:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          tags:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                          state:
+                            type: string
+                          deleted:
+                            type: boolean
+                          questions:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                          location_countries:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                          submitted_at:
+                            type: integer
+                          created_at:
+                            type: integer
+                          updated_at:
+                            type: integer
+                          company_shell_id:
+                            nullable: true
+                        required:
+                        - title
+                        - description_headline
+                        - description
+                        - projects
+                        - functions_headline
+                        - functions
+                        - benefits_headline
+                        - benefits
+                        - desirable_headline
+                        - desirable
+                        - remote
+                        - remote_modality
+                        - remote_zone
+                        - countries
+                        - lang
+                        - rejected_reasons
+                        - category_name
+                        - perks
+                        - min_salary
+                        - max_salary
+                        - published_at
+                        - response_time_in_days
+                        - applications_count
+                        - location_regions
+                        - location_tenants
+                        - location_cities
+                        - modality
+                        - seniority
+                        - tags
+                        - state
+                        - deleted
+                        - questions
+                        - location_countries
+                        - submitted_at
+                        - created_at
+                        - updated_at
+                    required:
+                    - id
+                    - type
+                    - attributes
+                required:
+                - data
+              example:
+                data:
+                  id: javascript-ninja-user-170-santiago
+                  type: job
+                  attributes:
+                    title: JavaScript Ninja
+                    description_headline: null
+                    description: Build reliable products for technical hiring teams.
+                    projects: Build reliable products for technical hiring teams.
+                    functions_headline: null
+                    functions: Build reliable products for technical hiring teams.
+                    benefits_headline: null
+                    benefits: Build reliable products for technical hiring teams.
+                    desirable_headline: null
+                    desirable: ''
+                    remote: false
+                    remote_modality: no_remote
+                    remote_zone: null
+                    countries:
+                    - Chile
+                    lang: lang_not_specified
+                    rejected_reasons: []
+                    category_name: Programming
+                    perks: []
+                    min_salary: 1500
+                    max_salary: 2000
+                    published_at: 0
+                    response_time_in_days:
+                      min: null
+                      max: null
+                    applications_count: 0
+                    location_regions:
+                      data: []
+                    location_tenants:
+                      data: []
+                    location_cities:
+                      data:
+                      - id: 1
+                        type: location_city
+                    modality:
+                      data:
+                        id: 234
+                        type: modality
+                    seniority:
+                      data:
+                        id: 243
+                        type: seniority
+                    tags:
+                      data: []
+                    state: submitted
+                    deleted: false
+                    questions:
+                      data: []
+                    location_countries:
+                      data: []
+                    submitted_at: 1784217385
+                    created_at: 1784217385
+                    updated_at: 1784217385
+                    company_shell_id: null
+        '401':
+          description: Submits a draft or rejected job for moderation approval.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: (Status 401) Unauthorized access to the API
+                code: unauthorized
+        '404':
+          description: Submits a draft or rejected job for moderation approval.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: Record not found
+                code: not_found
+        '422':
+          description: Submits a draft or rejected job for moderation approval.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    properties:
+                      modality:
+                        type: array
+                        items:
+                          type: string
+                    required:
+                    - modality
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: The job should be in draft or rejected state
+                code: unprocessable_content
+      operationId: submitCompanyPrivateJob
+      description: Submit a draft or rejected job for moderation. A rejected job can also return to moderation when updated through `PUT /api/v0/jobs/{id}`.
+  /api/v0/jobs/{job_id}/unpublish:
+    post:
+      summary: Unpublish a job
+      tags:
+      - Jobs
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        schema:
+          type: string
+        example: Bearer YOUR_API_KEY
+        description: Bearer credential for the authentication scheme required by this endpoint.
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+        example: javascript-ninja-user-286-santiago
+        description: Job slug or identifier from `GET /api/v0/jobs`.
+      responses:
+        '200':
+          description: Unpublishes an owned live job without hiding it, including board-only live jobs.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                          description_headline:
+                            nullable: true
+                          description:
+                            type: string
+                          projects:
+                            type: string
+                          functions_headline:
+                            nullable: true
+                          functions:
+                            type: string
+                          benefits_headline:
+                            nullable: true
+                          benefits:
+                            type: string
+                          desirable_headline:
+                            nullable: true
+                          desirable:
+                            type: string
+                          remote:
+                            type: boolean
+                          remote_modality:
+                            type: string
+                          remote_zone:
+                            nullable: true
+                          countries:
+                            type: array
+                            items:
+                              type: string
+                          lang:
+                            type: string
+                          rejected_reasons:
+                            type: array
+                            items: {}
+                          category_name:
+                            type: string
+                          perks:
+                            type: array
+                            items: {}
+                          min_salary:
+                            type: integer
+                          max_salary:
+                            type: integer
+                          published_at:
+                            type: integer
+                          response_time_in_days:
+                            type: object
+                            properties:
+                              min:
+                                nullable: true
+                              max:
+                                nullable: true
+                            required:
+                            - min
+                            - max
+                          applications_count:
+                            type: integer
+                          location_regions:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                          location_tenants:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                          location_cities:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: integer
+                                    type:
+                                      type: string
+                                  required:
+                                  - id
+                                  - type
+                            required:
+                            - data
+                          modality:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          seniority:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          tags:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                          state:
+                            type: string
+                          company_shell_id:
+                            nullable: true
+                          deleted:
+                            type: boolean
+                          questions:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                          location_countries:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                          submitted_at:
+                            type: integer
+                          created_at:
+                            type: integer
+                          updated_at:
+                            type: integer
+                        required:
+                        - title
+                        - description_headline
+                        - description
+                        - projects
+                        - functions_headline
+                        - functions
+                        - benefits_headline
+                        - benefits
+                        - desirable_headline
+                        - desirable
+                        - remote
+                        - remote_modality
+                        - remote_zone
+                        - countries
+                        - lang
+                        - rejected_reasons
+                        - category_name
+                        - perks
+                        - min_salary
+                        - max_salary
+                        - published_at
+                        - response_time_in_days
+                        - applications_count
+                        - location_regions
+                        - location_tenants
+                        - location_cities
+                        - modality
+                        - seniority
+                        - tags
+                        - state
+                        - company_shell_id
+                        - deleted
+                        - questions
+                        - location_countries
+                        - submitted_at
+                        - created_at
+                        - updated_at
+                    required:
+                    - id
+                    - type
+                    - attributes
+                required:
+                - data
+              example:
+                data:
+                  id: javascript-ninja-user-286-santiago
+                  type: job
+                  attributes:
+                    title: JavaScript Ninja
+                    description_headline: null
+                    description: Build reliable products for technical hiring teams.
+                    projects: Build reliable products for technical hiring teams.
+                    functions_headline: null
+                    functions: Build reliable products for technical hiring teams.
+                    benefits_headline: null
+                    benefits: Build reliable products for technical hiring teams.
+                    desirable_headline: null
+                    desirable: ''
+                    remote: false
+                    remote_modality: no_remote
+                    remote_zone: null
+                    countries:
+                    - Chile
+                    lang: lang_not_specified
+                    rejected_reasons: []
+                    category_name: Programming
+                    perks: []
+                    min_salary: 1500
+                    max_salary: 2000
+                    published_at: 1784217406
+                    response_time_in_days:
+                      min: null
+                      max: null
+                    applications_count: 0
+                    location_regions:
+                      data: []
+                    location_tenants:
+                      data: []
+                    location_cities:
+                      data:
+                      - id: 1
+                        type: location_city
+                    modality:
+                      data:
+                        id: 329
+                        type: modality
+                    seniority:
+                      data:
+                        id: 338
+                        type: seniority
+                    tags:
+                      data: []
+                    state: unpublished
+                    company_shell_id: null
+                    deleted: false
+                    questions:
+                      data: []
+                    location_countries:
+                      data: []
+                    submitted_at: 0
+                    created_at: 1784217406
+                    updated_at: 1784217406
+        '401':
+          description: Unpublishes an owned live job without hiding it, including board-only live jobs.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: (Status 401) Unauthorized access.
+                code: unauthorized
+        '404':
+          description: Unpublishes an owned live job without hiding it, including board-only live jobs.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: Record not found
+                code: not_found
+        '422':
+          description: Unpublishes an owned live job without hiding it, including board-only live jobs.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: The job could not be unpublished from its current state
+                code: unprocessable_content
+      operationId: unpublishCompanyPrivateJob
+      description: Use this for owned live jobs that should stop appearing publicly while staying available for later republishing.
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API key
+      description: 'Company authentication for private endpoints. Send `Authorization: Bearer <api_key>`.'
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Professional JWT token obtained via /api/v0/auth_tokens
+    BoardSecretKey:
+      type: http
+      scheme: bearer
+      bearerFormat: Board secret
+      description: 'Board+ HMAC secret key. Send `Authorization: Bearer <board_secret_key>`. The legacy query-string form (`?secret_key=...`) is still accepted by the server but is discouraged because secrets leak into logs, browser history, and referrers.'
+x-tagGroups:
+- name: Public
+  tags:
+  - Categories
+  - Companies
+  - Countries
+  - Headcounts
+  - Industries
+  - Insights
+  - Modalities
+  - Perks
+  - Regions
+  - Search
+  - Seniorities
+  - Tags
+  - Tenant Cities
+- name: Private
+  tags:
+  - Applications
+  - Company shells
+  - Jobs
+  - Matching
+  - Processes
+  - Professionals
+  - Webhooks
+- name: Authentication
+  tags:
+  - Authentication
+- name: Board+
+  tags:
+  - Board+

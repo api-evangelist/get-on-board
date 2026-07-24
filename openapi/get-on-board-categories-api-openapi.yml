@@ -1,0 +1,505 @@
+openapi: 3.0.3
+info:
+  title: Get on Board Applications Categories API
+  version: 0.1.0
+  description: "The Get on Board API provides access to the data inside Get on Board, the leading recruitment platform for tech professionals in Latin America.\n\nThere are two facets of the API:\n\n- **Public API** — Open to anyone. Access the same data visible on the platform without logging in: job categories, company profiles, published jobs, and a job search endpoint. No authentication required.\n- **Private API** — Requires authentication. Access your company's private data: jobs, recruitment processes, professionals, and applications. Available to companies with an active subscription plan that includes API access.\n\nBase URL: `https://www.getonbrd.com/api/v0/`\n\nFor bugs, improvement suggestions, or missing features, contact us at team@getonbrd.com.\n\n## Sandbox environment\n\nYou can test any endpoint using the sandbox environment:\n\n```\nhttps://sandbox.getonbrd.dev/api/v0/\n```\n\nWe strongly encourage you to test your API integrations against the sandbox before making live requests in production. The sandbox contains fake data, and certain features like payments may not work.\n\nIf your company wants to test the private API before subscribing, contact us at info@getonbrd.com or via the support chat to discuss temporary access.\n\n## Expanding responses\n\nMany endpoints support the `expand` query parameter to include full related resources instead of ID-only references.\n\n**Default (collapsed)** — Related objects return only `id` and `type`:\n\n```json\n{\n  \"job\": {\n    \"data\": { \"id\": 285, \"type\": \"job\" }\n  }\n}\n```\n\n**Expanded** — Pass `expand[]` to get the full resource with all attributes:\n\n```\nGET /api/v0/applications?expand[]=job&expand[]=professional\n```\n\nYou can expand multiple relationships in a single request. Nested expansion is supported with dot notation (e.g., `expand[]=job.tags`).\n\nSupported expand values vary by endpoint — refer to each endpoint's parameter documentation for available options.\n\n## Pagination and metadata\n\nMost list endpoints return paginated results with a `data` array and a `meta` object:\n\n```json\n{\n  \"data\": [ ... ],\n  \"meta\": {\n    \"page\": 1,\n    \"per_page\": 120,\n    \"total_pages\": 3\n  }\n}\n```\n\n| Parameter  | Type    | Default | Max | Description             |\n|------------|---------|---------|-----|-------------------------|\n| `page`     | integer | 1       | —   | Page number (min 1)     |\n| `per_page` | integer | 120     | 120 | Items per page (min 1)  |\n\nSome collection endpoints intentionally omit pagination metadata because they return bounded reference data or workflow state:\n\n- `GET /api/v0/perks`\n- `GET /api/v0/applications/discard_reasons`\n- `GET /api/v0/processes/{process_id}/phases`\n- `GET /api/v0/webhook_endpoints`\n- `GET /api/v0/webhook_events`\n- `GET /api/v0/matching_jobs` currently ignores `per_page` and omits pagination metadata.\n\n## Date filtering\n\nSome private endpoints support date range filtering using Unix epoch timestamps:\n\n| Parameter | Type    | Description                       |\n|-----------|---------|-----------------------------------|\n| `from`    | integer | Start date (epoch timestamp)      |\n| `to`      | integer | End date (epoch timestamp)        |\n\nInvalid date formats return a `422` error.\n\n## Localization\n\nAPI responses can be localized by setting a language preference. Supported locales: `en` (English), `es` (Spanish), `pt` (Portuguese).\n\n| Parameter | Type   | Description                     |\n|-----------|--------|---------------------------------|\n| `lang`    | string | Locale code: `en`, `es`, or `pt` |\n\nLanguage is resolved in this order:\n\n1. `lang` query parameter (e.g., `?lang=es`)\n2. `Accept-Language` HTTP header\n3. Authenticated user's language preference (private API only)\n4. Default locale\n\nLocalized fields include category names, perk descriptions, country names, and validation error messages. Use `?lang=en` to force English responses.\n\n## Companies Private API\n\nCollection of protected resources and endpoints a subscribed company has access to. Every request needs to be authenticated.\n\n> **Note:** Only companies with an active subscription plan can have access to the private API. The Companies Private API endpoints will return `404` if a subscription expires.\n\n### Authentication\n\nAuthenticate requests by sending the company API key in the `Authorization` header as `Bearer <api_key>`.\n\nThe key can be found in the company's profile page in Get on Board. Look for the section **API access** (`https://www.getonbrd.com/companies/[your-company]/api_settings`).\n\n### How the endpoints work together\n\nThe Companies Private API provides four interconnected endpoints that represent your complete recruitment workflow:\n\n**Jobs** (create postings) → **Applications** (receive candidates) → **Processes** (manage hiring) → **Professionals** (access profiles)\n\n### Core relationships\n\n- **Jobs**: Your job postings. The starting point that attracts candidates.\n- **Applications**: Generated when professionals apply to your jobs.\n- **Processes**: Structured hiring pipelines with phases (screening, interviews, etc.) that organize your recruitment workflow. A job can have multiple processes.\n- **Professionals**: Candidate profiles with detailed information.\n\n### Moving applications between phases\n\nTo move a candidate through your hiring pipeline:\n\n1. List your jobs with `GET /api/v0/jobs`.\n2. Pick a job and list its processes with `GET /api/v0/jobs/{job_id}/processes`. Use the job `id` string returned by `GET /api/v0/jobs`; this is normally a slug, not the numeric relationship ID embedded inside expanded process/job payloads.\n3. List applications for the process with `GET /api/v0/applications?process_id={process_id}`.\n4. Discover available target phases with `GET /api/v0/processes/{process_id}/phases`.\n5. If the target phase has `kind: \"discarded\"`, fetch valid reasons with `GET /api/v0/applications/discard_reasons`.\n6. Move the application with `PATCH /api/v0/applications/{application_id}/phase`.\n\nPhase IDs are numeric. Use a reason `id` from `GET /api/v0/applications/discard_reasons` as `discard_reason` when moving to a discarded phase. Moving an application back to a non-discarded phase clears its stored discard reason.\n\n### Multi-brand posting for ATS partners (company shells)\n\nRecruiting for many client companies through one integration? Authorized partner accounts can create\n**company shells** — public brand profiles (name, logo, description, own company page) for each client —\nand post jobs under those brands with a single API key:\n\n1. Create a shell with `POST /api/v0/company_shells` (a logo is required).\n2. Pass the shell's slug as `company_shell_id` on `POST /api/v0/jobs` or `PUT /api/v0/jobs/{id}`.\n3. The public job page, company profile, feeds, and public API show the client's brand; applications,\n   processes, and billing stay on your partner account.\n\nShell endpoints return `403` for non-partner API keys. Contact Get on Board to enable partner access\nfor your integration.\n\n### Key business rules\n\n- **Professional data access**: The Professionals endpoint has the strictest access controls. You can only access professional profiles when the professional is part of an active hiring process, the professional profile has been \"unlocked\", and you own the hiring process.\n- **Professionals are process-scoped**: Always include `process_id` when listing or retrieving professionals, for example `GET /api/v0/professionals?process_id=123` or `GET /api/v0/professionals/{id}?process_id=123`.\n- **Event payloads are starting points**: Webhook payloads and collapsed relationships identify resources, but some related endpoints still require additional scope such as `process_id`.\n- **Prefer canonical follow-up reads**: When starting from an event or collapsed payload, fetch the resource named by the payload first (for example `GET /api/v0/applications/{application_id}`), then use `expand[]` or process-scoped endpoints as needed.\n- **Data scoping**: All endpoints only return data belonging to your company (jobs you created, applications to your jobs, your hiring processes).\n- **Job moderation**: Jobs must be submitted via `POST /jobs/:id/submit` and approved before going live on the platform.\n- **Expandable relationships**: Use `expand[]=applications`, `expand[]=processes`, etc. to include related data and reduce API calls.\n\n### Read-only smoke test\n\nThe following sequence exercises the public API and the private company workflow without creating, updating, or deleting data:\n\n```bash\ncurl \"https://www.getonbrd.com/api/v0/categories?per_page=3&lang=en\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/jobs?per_page=3&lang=en\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/jobs/JOB_ID_FROM_LIST/processes\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/applications?process_id=PROCESS_ID&expand[]=job&expand[]=professional\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/applications/APPLICATION_ID?expand[]=professional\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/processes/PROCESS_ID/phases\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/professionals?process_id=PROCESS_ID&per_page=2\"\n```"
+servers:
+- url: https://www.getonbrd.com
+  description: Production
+- url: https://sandbox.getonbrd.dev
+  description: Sandbox
+tags:
+- name: Categories
+  description: Job categories
+paths:
+  /api/v0/categories:
+    get:
+      summary: List job categories
+      tags:
+      - Categories
+      responses:
+        '200':
+          description: Returns all job categories with optional pagination.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                            dimension:
+                              type: string
+                          required:
+                          - name
+                          - dimension
+                      required:
+                      - id
+                      - type
+                      - attributes
+                  meta:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      per_page:
+                        type: integer
+                      total_pages:
+                        type: integer
+                    required:
+                    - page
+                    - per_page
+                    - total_pages
+                required:
+                - data
+                - meta
+              example:
+                data:
+                - id: '1'
+                  type: category
+                  attributes:
+                    name: Programming
+                    dimension: programming
+                - id: '1'
+                  type: category
+                  attributes:
+                    name: Design
+                    dimension: design
+                - id: '1'
+                  type: category
+                  attributes:
+                    name: Category 26
+                    dimension: programming
+                - id: '1'
+                  type: category
+                  attributes:
+                    name: Category 27
+                    dimension: programming
+                - id: '1'
+                  type: category
+                  attributes:
+                    name: Category 28
+                    dimension: programming
+                - id: '1'
+                  type: category
+                  attributes:
+                    name: Category 29
+                    dimension: programming
+                - id: '1'
+                  type: category
+                  attributes:
+                    name: Category 30
+                    dimension: programming
+                meta:
+                  page: 1
+                  per_page: 120
+                  total_pages: 1
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+        example: 2
+        description: Page number, starting at 1.
+      - name: per_page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 120
+        example: 1
+        description: Number of records per page. The default and maximum are usually 120 unless an endpoint documents a different behavior.
+      operationId: listCategories
+  /api/v0/categories/{category_id}/jobs:
+    get:
+      summary: List jobs by category
+      tags:
+      - Categories
+      parameters:
+      - name: category_id
+        in: path
+        required: true
+        schema:
+          oneOf:
+          - type: string
+          - type: integer
+          type: string
+        example: 1
+        description: Category slug from `GET /api/v0/categories`.
+      - name: country_code
+        in: query
+        required: false
+        schema:
+          type: string
+        example: latin-america
+      - name: per_page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 120
+        example: 1
+        description: Number of records per page. The default and maximum are usually 120 unless an endpoint documents a different behavior.
+      responses:
+        '200':
+          description: Returns the published jobs for a category, optionally filtered by country code.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            title:
+                              type: string
+                            description_headline:
+                              nullable: true
+                            description:
+                              type: string
+                            projects:
+                              type: string
+                            functions_headline:
+                              nullable: true
+                            functions:
+                              type: string
+                            benefits_headline:
+                              nullable: true
+                            benefits:
+                              type: string
+                            desirable_headline:
+                              nullable: true
+                            desirable:
+                              type: string
+                            remote:
+                              type: boolean
+                            remote_modality:
+                              type: string
+                            remote_zone:
+                              nullable: true
+                            countries:
+                              type: array
+                              items:
+                                type: string
+                            lang:
+                              type: string
+                            rejected_reasons:
+                              type: array
+                              items: {}
+                            category_name:
+                              type: string
+                            perks:
+                              type: array
+                              items: {}
+                            min_salary:
+                              type: integer
+                            max_salary:
+                              type: integer
+                            published_at:
+                              type: integer
+                            response_time_in_days:
+                              type: object
+                              properties:
+                                min:
+                                  nullable: true
+                                max:
+                                  nullable: true
+                              required:
+                              - min
+                              - max
+                            applications_count:
+                              type: integer
+                            location_regions:
+                              type: object
+                              properties:
+                                data:
+                                  type: array
+                                  items: {}
+                              required:
+                              - data
+                            location_tenants:
+                              type: object
+                              properties:
+                                data:
+                                  type: array
+                                  items: {}
+                              required:
+                              - data
+                            location_cities:
+                              type: object
+                              properties:
+                                data:
+                                  type: array
+                                  items:
+                                    type: object
+                                    properties:
+                                      id:
+                                        type: integer
+                                      type:
+                                        type: string
+                                    required:
+                                    - id
+                                    - type
+                              required:
+                              - data
+                            modality:
+                              type: object
+                              properties:
+                                data:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: integer
+                                    type:
+                                      type: string
+                                  required:
+                                  - id
+                                  - type
+                              required:
+                              - data
+                            seniority:
+                              type: object
+                              properties:
+                                data:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: integer
+                                    type:
+                                      type: string
+                                  required:
+                                  - id
+                                  - type
+                              required:
+                              - data
+                            tags:
+                              type: object
+                              properties:
+                                data:
+                                  type: array
+                                  items: {}
+                              required:
+                              - data
+                            company:
+                              type: object
+                              properties:
+                                data:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: integer
+                                    type:
+                                      type: string
+                                  required:
+                                  - id
+                                  - type
+                              required:
+                              - data
+                          required:
+                          - title
+                          - description_headline
+                          - description
+                          - projects
+                          - functions_headline
+                          - functions
+                          - benefits_headline
+                          - benefits
+                          - desirable_headline
+                          - desirable
+                          - remote
+                          - remote_modality
+                          - remote_zone
+                          - countries
+                          - lang
+                          - rejected_reasons
+                          - category_name
+                          - perks
+                          - min_salary
+                          - max_salary
+                          - published_at
+                          - response_time_in_days
+                          - applications_count
+                          - location_regions
+                          - location_tenants
+                          - location_cities
+                          - modality
+                          - seniority
+                          - tags
+                          - company
+                        links:
+                          type: object
+                          properties:
+                            public_url:
+                              type: string
+                          required:
+                          - public_url
+                      required:
+                      - id
+                      - type
+                      - attributes
+                      - links
+                  meta:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      per_page:
+                        type: integer
+                      total_pages:
+                        type: integer
+                    required:
+                    - page
+                    - per_page
+                    - total_pages
+                required:
+                - data
+                - meta
+              example:
+                data:
+                - id: '1'
+                  type: job
+                  attributes:
+                    title: JavaScript Ninja
+                    description_headline: null
+                    description: Build reliable products for technical hiring teams.
+                    projects: Build reliable products for technical hiring teams.
+                    functions_headline: null
+                    functions: Build reliable products for technical hiring teams.
+                    benefits_headline: null
+                    benefits: Build reliable products for technical hiring teams.
+                    desirable_headline: null
+                    desirable: ''
+                    remote: false
+                    remote_modality: no_remote
+                    remote_zone: null
+                    countries:
+                    - Chile
+                    lang: lang_not_specified
+                    rejected_reasons: []
+                    category_name: Programming
+                    perks: []
+                    min_salary: 1500
+                    max_salary: 2000
+                    published_at: 1784217402
+                    response_time_in_days:
+                      min: null
+                      max: null
+                    applications_count: 7
+                    location_regions:
+                      data: []
+                    location_tenants:
+                      data: []
+                    location_cities:
+                      data:
+                      - id: 1
+                        type: location_city
+                    modality:
+                      data:
+                        id: 307
+                        type: modality
+                    seniority:
+                      data:
+                        id: 316
+                        type: seniority
+                    tags:
+                      data: []
+                    company:
+                      data:
+                        id: 264
+                        type: company
+                  links:
+                    public_url: http://test.getonbrd.com/jobs/javascript-ninja-user-262-santiago
+                meta:
+                  page: 1
+                  per_page: 120
+                  total_pages: 1
+        '422':
+          description: Returns the published jobs for a category, optionally filtered by country code.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: Country code should be an ISO 3166-1 alpha-2 code
+                code: unprocessable_content
+      operationId: listCategoryJobs
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API key
+      description: 'Company authentication for private endpoints. Send `Authorization: Bearer <api_key>`.'
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Professional JWT token obtained via /api/v0/auth_tokens
+    BoardSecretKey:
+      type: http
+      scheme: bearer
+      bearerFormat: Board secret
+      description: 'Board+ HMAC secret key. Send `Authorization: Bearer <board_secret_key>`. The legacy query-string form (`?secret_key=...`) is still accepted by the server but is discouraged because secrets leak into logs, browser history, and referrers.'
+x-tagGroups:
+- name: Public
+  tags:
+  - Categories
+  - Companies
+  - Countries
+  - Headcounts
+  - Industries
+  - Insights
+  - Modalities
+  - Perks
+  - Regions
+  - Search
+  - Seniorities
+  - Tags
+  - Tenant Cities
+- name: Private
+  tags:
+  - Applications
+  - Company shells
+  - Jobs
+  - Matching
+  - Processes
+  - Professionals
+  - Webhooks
+- name: Authentication
+  tags:
+  - Authentication
+- name: Board+
+  tags:
+  - Board+

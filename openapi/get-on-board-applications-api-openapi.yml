@@ -1,0 +1,2392 @@
+openapi: 3.0.3
+info:
+  title: Get on Board Applications API
+  version: 0.1.0
+  description: "The Get on Board API provides access to the data inside Get on Board, the leading recruitment platform for tech professionals in Latin America.\n\nThere are two facets of the API:\n\n- **Public API** — Open to anyone. Access the same data visible on the platform without logging in: job categories, company profiles, published jobs, and a job search endpoint. No authentication required.\n- **Private API** — Requires authentication. Access your company's private data: jobs, recruitment processes, professionals, and applications. Available to companies with an active subscription plan that includes API access.\n\nBase URL: `https://www.getonbrd.com/api/v0/`\n\nFor bugs, improvement suggestions, or missing features, contact us at team@getonbrd.com.\n\n## Sandbox environment\n\nYou can test any endpoint using the sandbox environment:\n\n```\nhttps://sandbox.getonbrd.dev/api/v0/\n```\n\nWe strongly encourage you to test your API integrations against the sandbox before making live requests in production. The sandbox contains fake data, and certain features like payments may not work.\n\nIf your company wants to test the private API before subscribing, contact us at info@getonbrd.com or via the support chat to discuss temporary access.\n\n## Expanding responses\n\nMany endpoints support the `expand` query parameter to include full related resources instead of ID-only references.\n\n**Default (collapsed)** — Related objects return only `id` and `type`:\n\n```json\n{\n  \"job\": {\n    \"data\": { \"id\": 285, \"type\": \"job\" }\n  }\n}\n```\n\n**Expanded** — Pass `expand[]` to get the full resource with all attributes:\n\n```\nGET /api/v0/applications?expand[]=job&expand[]=professional\n```\n\nYou can expand multiple relationships in a single request. Nested expansion is supported with dot notation (e.g., `expand[]=job.tags`).\n\nSupported expand values vary by endpoint — refer to each endpoint's parameter documentation for available options.\n\n## Pagination and metadata\n\nMost list endpoints return paginated results with a `data` array and a `meta` object:\n\n```json\n{\n  \"data\": [ ... ],\n  \"meta\": {\n    \"page\": 1,\n    \"per_page\": 120,\n    \"total_pages\": 3\n  }\n}\n```\n\n| Parameter  | Type    | Default | Max | Description             |\n|------------|---------|---------|-----|-------------------------|\n| `page`     | integer | 1       | —   | Page number (min 1)     |\n| `per_page` | integer | 120     | 120 | Items per page (min 1)  |\n\nSome collection endpoints intentionally omit pagination metadata because they return bounded reference data or workflow state:\n\n- `GET /api/v0/perks`\n- `GET /api/v0/applications/discard_reasons`\n- `GET /api/v0/processes/{process_id}/phases`\n- `GET /api/v0/webhook_endpoints`\n- `GET /api/v0/webhook_events`\n- `GET /api/v0/matching_jobs` currently ignores `per_page` and omits pagination metadata.\n\n## Date filtering\n\nSome private endpoints support date range filtering using Unix epoch timestamps:\n\n| Parameter | Type    | Description                       |\n|-----------|---------|-----------------------------------|\n| `from`    | integer | Start date (epoch timestamp)      |\n| `to`      | integer | End date (epoch timestamp)        |\n\nInvalid date formats return a `422` error.\n\n## Localization\n\nAPI responses can be localized by setting a language preference. Supported locales: `en` (English), `es` (Spanish), `pt` (Portuguese).\n\n| Parameter | Type   | Description                     |\n|-----------|--------|---------------------------------|\n| `lang`    | string | Locale code: `en`, `es`, or `pt` |\n\nLanguage is resolved in this order:\n\n1. `lang` query parameter (e.g., `?lang=es`)\n2. `Accept-Language` HTTP header\n3. Authenticated user's language preference (private API only)\n4. Default locale\n\nLocalized fields include category names, perk descriptions, country names, and validation error messages. Use `?lang=en` to force English responses.\n\n## Companies Private API\n\nCollection of protected resources and endpoints a subscribed company has access to. Every request needs to be authenticated.\n\n> **Note:** Only companies with an active subscription plan can have access to the private API. The Companies Private API endpoints will return `404` if a subscription expires.\n\n### Authentication\n\nAuthenticate requests by sending the company API key in the `Authorization` header as `Bearer <api_key>`.\n\nThe key can be found in the company's profile page in Get on Board. Look for the section **API access** (`https://www.getonbrd.com/companies/[your-company]/api_settings`).\n\n### How the endpoints work together\n\nThe Companies Private API provides four interconnected endpoints that represent your complete recruitment workflow:\n\n**Jobs** (create postings) → **Applications** (receive candidates) → **Processes** (manage hiring) → **Professionals** (access profiles)\n\n### Core relationships\n\n- **Jobs**: Your job postings. The starting point that attracts candidates.\n- **Applications**: Generated when professionals apply to your jobs.\n- **Processes**: Structured hiring pipelines with phases (screening, interviews, etc.) that organize your recruitment workflow. A job can have multiple processes.\n- **Professionals**: Candidate profiles with detailed information.\n\n### Moving applications between phases\n\nTo move a candidate through your hiring pipeline:\n\n1. List your jobs with `GET /api/v0/jobs`.\n2. Pick a job and list its processes with `GET /api/v0/jobs/{job_id}/processes`. Use the job `id` string returned by `GET /api/v0/jobs`; this is normally a slug, not the numeric relationship ID embedded inside expanded process/job payloads.\n3. List applications for the process with `GET /api/v0/applications?process_id={process_id}`.\n4. Discover available target phases with `GET /api/v0/processes/{process_id}/phases`.\n5. If the target phase has `kind: \"discarded\"`, fetch valid reasons with `GET /api/v0/applications/discard_reasons`.\n6. Move the application with `PATCH /api/v0/applications/{application_id}/phase`.\n\nPhase IDs are numeric. Use a reason `id` from `GET /api/v0/applications/discard_reasons` as `discard_reason` when moving to a discarded phase. Moving an application back to a non-discarded phase clears its stored discard reason.\n\n### Multi-brand posting for ATS partners (company shells)\n\nRecruiting for many client companies through one integration? Authorized partner accounts can create\n**company shells** — public brand profiles (name, logo, description, own company page) for each client —\nand post jobs under those brands with a single API key:\n\n1. Create a shell with `POST /api/v0/company_shells` (a logo is required).\n2. Pass the shell's slug as `company_shell_id` on `POST /api/v0/jobs` or `PUT /api/v0/jobs/{id}`.\n3. The public job page, company profile, feeds, and public API show the client's brand; applications,\n   processes, and billing stay on your partner account.\n\nShell endpoints return `403` for non-partner API keys. Contact Get on Board to enable partner access\nfor your integration.\n\n### Key business rules\n\n- **Professional data access**: The Professionals endpoint has the strictest access controls. You can only access professional profiles when the professional is part of an active hiring process, the professional profile has been \"unlocked\", and you own the hiring process.\n- **Professionals are process-scoped**: Always include `process_id` when listing or retrieving professionals, for example `GET /api/v0/professionals?process_id=123` or `GET /api/v0/professionals/{id}?process_id=123`.\n- **Event payloads are starting points**: Webhook payloads and collapsed relationships identify resources, but some related endpoints still require additional scope such as `process_id`.\n- **Prefer canonical follow-up reads**: When starting from an event or collapsed payload, fetch the resource named by the payload first (for example `GET /api/v0/applications/{application_id}`), then use `expand[]` or process-scoped endpoints as needed.\n- **Data scoping**: All endpoints only return data belonging to your company (jobs you created, applications to your jobs, your hiring processes).\n- **Job moderation**: Jobs must be submitted via `POST /jobs/:id/submit` and approved before going live on the platform.\n- **Expandable relationships**: Use `expand[]=applications`, `expand[]=processes`, etc. to include related data and reduce API calls.\n\n### Read-only smoke test\n\nThe following sequence exercises the public API and the private company workflow without creating, updating, or deleting data:\n\n```bash\ncurl \"https://www.getonbrd.com/api/v0/categories?per_page=3&lang=en\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/jobs?per_page=3&lang=en\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/jobs/JOB_ID_FROM_LIST/processes\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/applications?process_id=PROCESS_ID&expand[]=job&expand[]=professional\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/applications/APPLICATION_ID?expand[]=professional\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/processes/PROCESS_ID/phases\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/professionals?process_id=PROCESS_ID&per_page=2\"\n```"
+servers:
+- url: https://www.getonbrd.com
+  description: Production
+- url: https://sandbox.getonbrd.dev
+  description: Sandbox
+tags:
+- name: Applications
+  description: Job applications management
+paths:
+  /api/v0/applications:
+    get:
+      summary: List applications
+      tags:
+      - Applications
+      security:
+      - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Returns a paginated list of applications for the authenticated company.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            slug:
+                              type: string
+                            deleted:
+                              type: boolean
+                            read:
+                              type: boolean
+                            messages_count:
+                              type: integer
+                            notes_count:
+                              type: integer
+                            unlocked:
+                              type: boolean
+                            unread_messages_from_webpro:
+                              type: integer
+                            unread_messages_from_company:
+                              type: integer
+                            discard_reason:
+                              nullable: true
+                            expected_salary:
+                              type: integer
+                            reason_to_apply:
+                              type: string
+                            professional_background:
+                              type: string
+                            academic_background:
+                              type: string
+                            sent_at:
+                              type: integer
+                            created_at:
+                              type: integer
+                            updated_at:
+                              type: integer
+                            job:
+                              type: object
+                              properties:
+                                data:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: integer
+                                    type:
+                                      type: string
+                                    attributes:
+                                      type: object
+                                      properties:
+                                        title:
+                                          type: string
+                                        description_headline:
+                                          nullable: true
+                                        description:
+                                          type: string
+                                        projects:
+                                          type: string
+                                        functions_headline:
+                                          nullable: true
+                                        functions:
+                                          type: string
+                                        benefits_headline:
+                                          nullable: true
+                                        benefits:
+                                          type: string
+                                        desirable_headline:
+                                          nullable: true
+                                        desirable:
+                                          type: string
+                                        remote:
+                                          type: boolean
+                                        remote_modality:
+                                          type: string
+                                        remote_zone:
+                                          nullable: true
+                                        countries:
+                                          type: array
+                                          items:
+                                            type: string
+                                        lang:
+                                          type: string
+                                        rejected_reasons:
+                                          type: array
+                                          items: {}
+                                        category_name:
+                                          type: string
+                                        perks:
+                                          type: array
+                                          items: {}
+                                        min_salary:
+                                          type: integer
+                                        max_salary:
+                                          type: integer
+                                        published_at:
+                                          type: integer
+                                        response_time_in_days:
+                                          type: object
+                                          properties:
+                                            min:
+                                              nullable: true
+                                            max:
+                                              nullable: true
+                                          required:
+                                          - min
+                                          - max
+                                        applications_count:
+                                          type: integer
+                                        location_regions:
+                                          type: object
+                                          properties:
+                                            data:
+                                              type: array
+                                              items: {}
+                                          required:
+                                          - data
+                                        location_tenants:
+                                          type: object
+                                          properties:
+                                            data:
+                                              type: array
+                                              items: {}
+                                          required:
+                                          - data
+                                        location_cities:
+                                          type: object
+                                          properties:
+                                            data:
+                                              type: array
+                                              items:
+                                                type: object
+                                                properties:
+                                                  id:
+                                                    type: integer
+                                                  type:
+                                                    type: string
+                                                required:
+                                                - id
+                                                - type
+                                          required:
+                                          - data
+                                        modality:
+                                          type: object
+                                          properties:
+                                            data:
+                                              type: object
+                                              properties:
+                                                id:
+                                                  type: integer
+                                                type:
+                                                  type: string
+                                              required:
+                                              - id
+                                              - type
+                                          required:
+                                          - data
+                                        seniority:
+                                          type: object
+                                          properties:
+                                            data:
+                                              type: object
+                                              properties:
+                                                id:
+                                                  type: integer
+                                                type:
+                                                  type: string
+                                              required:
+                                              - id
+                                              - type
+                                          required:
+                                          - data
+                                        tags:
+                                          type: object
+                                          properties:
+                                            data:
+                                              type: array
+                                              items: {}
+                                          required:
+                                          - data
+                                        state:
+                                          type: string
+                                        company_shell_id:
+                                          nullable: true
+                                        deleted:
+                                          type: boolean
+                                        questions:
+                                          type: object
+                                          properties:
+                                            data:
+                                              type: array
+                                              items:
+                                                type: object
+                                                properties:
+                                                  id:
+                                                    type: integer
+                                                  type:
+                                                    type: string
+                                                required:
+                                                - id
+                                                - type
+                                          required:
+                                          - data
+                                        location_countries:
+                                          type: object
+                                          properties:
+                                            data:
+                                              type: array
+                                              items: {}
+                                          required:
+                                          - data
+                                        submitted_at:
+                                          type: integer
+                                        created_at:
+                                          type: integer
+                                        updated_at:
+                                          type: integer
+                                      required:
+                                      - title
+                                      - description_headline
+                                      - description
+                                      - projects
+                                      - functions_headline
+                                      - functions
+                                      - benefits_headline
+                                      - benefits
+                                      - desirable_headline
+                                      - desirable
+                                      - remote
+                                      - remote_modality
+                                      - remote_zone
+                                      - countries
+                                      - lang
+                                      - rejected_reasons
+                                      - category_name
+                                      - perks
+                                      - min_salary
+                                      - max_salary
+                                      - published_at
+                                      - response_time_in_days
+                                      - applications_count
+                                      - location_regions
+                                      - location_tenants
+                                      - location_cities
+                                      - modality
+                                      - seniority
+                                      - tags
+                                      - state
+                                      - company_shell_id
+                                      - deleted
+                                      - questions
+                                      - location_countries
+                                      - submitted_at
+                                      - created_at
+                                      - updated_at
+                                  required:
+                                  - id
+                                  - type
+                              required:
+                              - data
+                            phase:
+                              type: object
+                              properties:
+                                data:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: integer
+                                    type:
+                                      type: string
+                                    attributes:
+                                      type: object
+                                      properties:
+                                        title:
+                                          type: string
+                                        position:
+                                          type: integer
+                                        kind:
+                                          type: string
+                                        reserved:
+                                          type: boolean
+                                        created_at:
+                                          type: integer
+                                        updated_at:
+                                          type: integer
+                                      required:
+                                      - title
+                                      - position
+                                      - kind
+                                      - reserved
+                                      - created_at
+                                      - updated_at
+                                  required:
+                                  - id
+                                  - type
+                              required:
+                              - data
+                            professional:
+                              type: object
+                              properties:
+                                data:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: string
+                                    type:
+                                      type: string
+                                    attributes:
+                                      type: object
+                                      properties:
+                                        slug:
+                                          type: string
+                                        email:
+                                          type: string
+                                        name:
+                                          type: string
+                                        location:
+                                          nullable: true
+                                        description:
+                                          type: string
+                                        image:
+                                          type: object
+                                          properties:
+                                            url:
+                                              nullable: true
+                                            thumb:
+                                              type: object
+                                              properties:
+                                                url:
+                                                  nullable: true
+                                              required:
+                                              - url
+                                          required:
+                                          - url
+                                          - thumb
+                                        github:
+                                          type: string
+                                        twitter:
+                                          nullable: true
+                                        linkedin:
+                                          nullable: true
+                                        portfolio:
+                                          nullable: true
+                                        min_salary:
+                                          nullable: true
+                                        professional_background:
+                                          type: string
+                                        academic_background:
+                                          type: string
+                                        uploaded_cv:
+                                          type: object
+                                          properties:
+                                            url:
+                                              nullable: true
+                                              type: string
+                                          required:
+                                          - url
+                                        country:
+                                          type: string
+                                        stackoverflow:
+                                          nullable: true
+                                        youtube:
+                                          nullable: true
+                                        gitlab:
+                                          nullable: true
+                                        phone:
+                                          nullable: true
+                                        created_at:
+                                          type: integer
+                                        updated_at:
+                                          type: integer
+                                      required:
+                                      - slug
+                                      - email
+                                      - name
+                                      - location
+                                      - description
+                                      - image
+                                      - github
+                                      - twitter
+                                      - linkedin
+                                      - portfolio
+                                      - min_salary
+                                      - professional_background
+                                      - academic_background
+                                      - uploaded_cv
+                                      - country
+                                      - stackoverflow
+                                      - youtube
+                                      - gitlab
+                                      - phone
+                                      - created_at
+                                      - updated_at
+                                  required:
+                                  - id
+                                  - type
+                              required:
+                              - data
+                            answers:
+                              type: object
+                              properties:
+                                data:
+                                  type: array
+                                  items:
+                                    type: object
+                                    properties:
+                                      id:
+                                        type: integer
+                                      type:
+                                        type: string
+                                      attributes:
+                                        type: object
+                                        properties:
+                                          slug:
+                                            type: string
+                                          text:
+                                            type: string
+                                          language:
+                                            nullable: true
+                                          selected_choice:
+                                            type: array
+                                            items: {}
+                                          score:
+                                            type: integer
+                                          created_at:
+                                            type: integer
+                                          updated_at:
+                                            type: integer
+                                        required:
+                                        - slug
+                                        - text
+                                        - language
+                                        - selected_choice
+                                        - score
+                                        - created_at
+                                        - updated_at
+                                    required:
+                                    - id
+                                    - type
+                              required:
+                              - data
+                            messages:
+                              type: object
+                              properties:
+                                data:
+                                  type: array
+                                  items:
+                                    type: object
+                                    properties:
+                                      id:
+                                        type: string
+                                      type:
+                                        type: string
+                                      attributes:
+                                        type: object
+                                        properties:
+                                          id:
+                                            type: integer
+                                          text:
+                                            type: string
+                                          slug:
+                                            type: string
+                                          read:
+                                            type: boolean
+                                          subject:
+                                            nullable: true
+                                          is_email:
+                                            type: boolean
+                                          state:
+                                            type: string
+                                          source:
+                                            type: string
+                                          pending_release:
+                                            type: boolean
+                                          editable:
+                                            type: boolean
+                                          author:
+                                            type: string
+                                          created_at:
+                                            type: integer
+                                          updated_at:
+                                            type: integer
+                                          release_at:
+                                            type: integer
+                                          editable_until_at:
+                                            type: integer
+                                        required:
+                                        - id
+                                        - text
+                                        - slug
+                                        - read
+                                        - subject
+                                        - is_email
+                                        - state
+                                        - source
+                                        - pending_release
+                                        - editable
+                                        - author
+                                        - created_at
+                                        - updated_at
+                                        - release_at
+                                        - editable_until_at
+                                    required:
+                                    - id
+                                    - type
+                              required:
+                              - data
+                            notes:
+                              type: object
+                              properties:
+                                data:
+                                  type: array
+                                  items:
+                                    type: object
+                                    properties:
+                                      id:
+                                        type: string
+                                      type:
+                                        type: string
+                                      attributes:
+                                        type: object
+                                        properties:
+                                          id:
+                                            type: integer
+                                          text:
+                                            type: string
+                                          author:
+                                            type: string
+                                          created_at:
+                                            type: integer
+                                          updated_at:
+                                            type: integer
+                                        required:
+                                        - id
+                                        - text
+                                        - author
+                                        - created_at
+                                        - updated_at
+                                    required:
+                                    - id
+                                    - type
+                              required:
+                              - data
+                          required:
+                          - slug
+                          - deleted
+                          - read
+                          - messages_count
+                          - notes_count
+                          - unlocked
+                          - unread_messages_from_webpro
+                          - unread_messages_from_company
+                          - sent_at
+                          - created_at
+                          - updated_at
+                          - job
+                          - phase
+                          - professional
+                      required:
+                      - id
+                      - type
+                      - attributes
+                  meta:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      per_page:
+                        type: integer
+                      total_pages:
+                        type: integer
+                    required:
+                    - page
+                    - per_page
+                    - total_pages
+                required:
+                - data
+                - meta
+              example:
+                data:
+                - id: '1'
+                  type: application
+                  attributes:
+                    slug: 43ea21fbe34e2f5873cfeb05814b002b
+                    deleted: false
+                    read: false
+                    messages_count: 0
+                    notes_count: 0
+                    unlocked: true
+                    unread_messages_from_webpro: 0
+                    unread_messages_from_company: 0
+                    discard_reason: null
+                    expected_salary: 1000
+                    reason_to_apply: Acme builds software for modern recruiting teams.
+                    professional_background: Acme builds software for modern recruiting teams.
+                    academic_background: Acme builds software for modern recruiting teams.
+                    sent_at: 1784217434
+                    created_at: 1784217434
+                    updated_at: 1784217434
+                    job:
+                      data:
+                        id: 351
+                        type: job
+                    phase:
+                      data:
+                        id: 1129
+                        type: phase
+                    professional:
+                      data:
+                        id: '157'
+                        type: professional
+                        attributes:
+                          slug: webpro-157
+                          email: webpro157@example.com
+                          name: 'Webpro '
+                          location: null
+                          description: Polyglot full-stack developer
+                          image:
+                            url: null
+                            thumb:
+                              url: null
+                          github: githubuser157
+                          twitter: null
+                          linkedin: null
+                          portfolio: null
+                          min_salary: null
+                          professional_background: ''
+                          academic_background: ''
+                          uploaded_cv:
+                            url: null
+                          country: CL
+                          stackoverflow: null
+                          youtube: null
+                          gitlab: null
+                          phone: null
+                          created_at: 1784217434
+                          updated_at: 1784217434
+                    answers:
+                      data:
+                      - id: 103
+                        type: answer
+                      - id: 104
+                        type: answer
+                      - id: 105
+                        type: answer
+                    messages:
+                      data: []
+                    notes:
+                      data: []
+                - id: '1'
+                  type: application
+                  attributes:
+                    slug: 82b4065e5707bc7cedb5293bd082ed84
+                    deleted: false
+                    read: false
+                    messages_count: 0
+                    notes_count: 0
+                    unlocked: true
+                    unread_messages_from_webpro: 0
+                    unread_messages_from_company: 0
+                    discard_reason: null
+                    expected_salary: 1000
+                    reason_to_apply: Acme builds software for modern recruiting teams.
+                    professional_background: Acme builds software for modern recruiting teams.
+                    academic_background: Acme builds software for modern recruiting teams.
+                    sent_at: 1784217434
+                    created_at: 1784217434
+                    updated_at: 1784217434
+                    job:
+                      data:
+                        id: 350
+                        type: job
+                    phase:
+                      data:
+                        id: 1125
+                        type: phase
+                    professional:
+                      data:
+                        id: '156'
+                        type: professional
+                        attributes:
+                          slug: webpro-156
+                          email: webpro156@example.com
+                          name: 'Webpro '
+                          location: null
+                          description: Polyglot full-stack developer
+                          image:
+                            url: null
+                            thumb:
+                              url: null
+                          github: githubuser156
+                          twitter: null
+                          linkedin: null
+                          portfolio: null
+                          min_salary: null
+                          professional_background: ''
+                          academic_background: ''
+                          uploaded_cv:
+                            url: null
+                          country: CL
+                          stackoverflow: null
+                          youtube: null
+                          gitlab: null
+                          phone: null
+                          created_at: 1784217434
+                          updated_at: 1784217434
+                    answers:
+                      data:
+                      - id: 100
+                        type: answer
+                      - id: 101
+                        type: answer
+                      - id: 102
+                        type: answer
+                    messages:
+                      data: []
+                    notes:
+                      data: []
+                - id: '1'
+                  type: application
+                  attributes:
+                    slug: 51953ffc521ed5f2cdff3bc8b523be47
+                    deleted: false
+                    read: false
+                    messages_count: 0
+                    notes_count: 0
+                    unlocked: true
+                    unread_messages_from_webpro: 0
+                    unread_messages_from_company: 0
+                    discard_reason: null
+                    expected_salary: 1000
+                    reason_to_apply: Acme builds software for modern recruiting teams.
+                    professional_background: Acme builds software for modern recruiting teams.
+                    academic_background: Acme builds software for modern recruiting teams.
+                    sent_at: 1784217434
+                    created_at: 1784217434
+                    updated_at: 1784217434
+                    job:
+                      data:
+                        id: 349
+                        type: job
+                    phase:
+                      data:
+                        id: 1121
+                        type: phase
+                    professional:
+                      data:
+                        id: '155'
+                        type: professional
+                        attributes:
+                          slug: webpro-155
+                          email: webpro155@example.com
+                          name: 'Webpro '
+                          location: null
+                          description: Polyglot full-stack developer
+                          image:
+                            url: null
+                            thumb:
+                              url: null
+                          github: githubuser155
+                          twitter: null
+                          linkedin: null
+                          portfolio: null
+                          min_salary: null
+                          professional_background: ''
+                          academic_background: ''
+                          uploaded_cv:
+                            url: null
+                          country: CL
+                          stackoverflow: null
+                          youtube: null
+                          gitlab: null
+                          phone: null
+                          created_at: 1784217434
+                          updated_at: 1784217434
+                    answers:
+                      data:
+                      - id: 97
+                        type: answer
+                      - id: 98
+                        type: answer
+                      - id: 99
+                        type: answer
+                    messages:
+                      data: []
+                    notes:
+                      data: []
+                meta:
+                  page: 1
+                  per_page: 120
+                  total_pages: 1
+        '401':
+          description: Returns a paginated list of applications for the authenticated company.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: (Status 401) Unauthorized access.
+                code: unauthorized
+        '422':
+          description: Returns a paginated list of applications for the authenticated company.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: Invalid date formats in paremeters. Use an Epoch time format.
+                code: unprocessable_content
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+        example: Bearer YOUR_API_KEY
+        description: Bearer credential for the authentication scheme required by this endpoint.
+      - name: expand
+        in: query
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+        example:
+        - professional
+      - name: from
+        in: query
+        required: false
+        schema:
+          oneOf:
+          - type: integer
+          - type: string
+          type: integer
+          format: int64
+        example: 1783958223
+        description: Start of the date range as a Unix epoch timestamp.
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+        example: 2
+        description: Page number, starting at 1.
+      - name: per_page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 120
+        example: 2
+        description: Number of records per page. The default and maximum are usually 120 unless an endpoint documents a different behavior.
+      - name: process_id
+        in: query
+        required: false
+        schema:
+          type: integer
+        example: 317
+      - name: to
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int64
+        example: 1783958221
+        description: End of the date range as a Unix epoch timestamp.
+      operationId: listApplications
+      description: Filter by `process_id` when preparing a phase move. Use each returned application `id` with `PATCH /api/v0/applications/{application_id}/phase`.
+    post:
+      summary: Create an application
+      tags:
+      - Applications
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+        example: Bearer YOUR_API_KEY
+        description: Bearer credential for the authentication scheme required by this endpoint.
+      responses:
+        '200':
+          description: Creates a new job application on behalf of a professional.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          slug:
+                            type: string
+                          deleted:
+                            type: boolean
+                          read:
+                            type: boolean
+                          messages_count:
+                            type: integer
+                          notes_count:
+                            type: integer
+                          unlocked:
+                            type: boolean
+                          unread_messages_from_webpro:
+                            type: integer
+                          unread_messages_from_company:
+                            type: integer
+                          sent_at:
+                            type: integer
+                          created_at:
+                            type: integer
+                          updated_at:
+                            type: integer
+                          job:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          phase:
+                            nullable: true
+                          professional:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                        required:
+                        - slug
+                        - deleted
+                        - read
+                        - messages_count
+                        - notes_count
+                        - unlocked
+                        - unread_messages_from_webpro
+                        - unread_messages_from_company
+                        - sent_at
+                        - created_at
+                        - updated_at
+                        - job
+                        - phase
+                        - professional
+                    required:
+                    - id
+                    - type
+                    - attributes
+                required:
+                - data
+              example:
+                data:
+                  id: '89'
+                  type: application
+                  attributes:
+                    slug: c9c7ff76e9eeaba2397e788ddfe60871
+                    deleted: false
+                    read: false
+                    messages_count: 0
+                    notes_count: 0
+                    unlocked: false
+                    unread_messages_from_webpro: 0
+                    unread_messages_from_company: 0
+                    sent_at: 1784217442
+                    created_at: 1784217442
+                    updated_at: 1784217442
+                    job:
+                      data:
+                        id: 375
+                        type: job
+                    phase: null
+                    professional:
+                      data:
+                        id: 174
+                        type: professional
+        '401':
+          description: Creates a new job application on behalf of a professional.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: (Status 401) Unauthorized access.
+                code: unauthorized
+        '404':
+          description: Creates a new job application on behalf of a professional.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: Record not found
+                code: not_found
+        '422':
+          description: Creates a new job application on behalf of a professional.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    properties:
+                      professional_background_plain_text:
+                        type: array
+                        items:
+                          type: string
+                    required:
+                    - professional_background_plain_text
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: Job JavaScript Ninja has no active hiring process
+                code: unprocessable_content
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                job_id:
+                  type: string
+                email:
+                  type: string
+                name:
+                  type: string
+                professional_background:
+                  type: string
+                reason_to_apply:
+                  type: string
+                answers:
+                  type: string
+                github:
+                  type: string
+                description:
+                  type: string
+              required:
+              - job_id
+              - email
+              - name
+              - professional_background
+              - reason_to_apply
+            example:
+              job_id: '375'
+              email: john@doe.com
+              name: John Doe
+              professional_background: ABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHI
+              reason_to_apply: ABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHI
+              answers: '[]'
+              github: hacker_injected
+              description: Full stack React and Rails developer
+      operationId: createApplication
+  /api/v0/applications/discard_reasons:
+    get:
+      summary: List application discard reasons
+      tags:
+      - Applications
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+        example: Bearer YOUR_API_KEY
+        description: Bearer credential for the authentication scheme required by this endpoint.
+      - name: lang
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - en
+          - es
+          - pt
+        example: pt
+        description: Response locale. Supported values are `en`, `es`, and `pt`.
+      responses:
+        '200':
+          description: Returns localized rejection/discard reason reference data for phase transitions.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            label:
+                              type: string
+                            category:
+                              type: string
+                              nullable: true
+                            category_label:
+                              type: string
+                              nullable: true
+                            category_description:
+                              type: string
+                              nullable: true
+                          required:
+                          - label
+                      required:
+                      - id
+                      - type
+                      - attributes
+                required:
+                - data
+              example:
+                data:
+                - id: no_reason
+                  type: discard_reason
+                  attributes:
+                    label: No reason
+                    category: others
+                    category_label: No reason
+                    category_description: Misconduct, spam or other reasons.
+                - id: poor_fit
+                  type: discard_reason
+                  attributes:
+                    label: Unfit for the job
+                    category: unfit
+                    category_label: Unfit
+                    category_description: The candidate did not meet expectations or did not pass quizzes or tests.
+        '401':
+          description: Returns localized rejection/discard reason reference data for phase transitions.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: (Status 401) Unauthorized access to the API
+                code: unauthorized
+      operationId: listApplicationDiscardReasons
+      description: Use a returned reason `id` as `discard_reason` when moving an application to a phase whose `kind` is `discarded`.
+  /api/v0/applications/{application_id}/phase:
+    patch:
+      summary: Move an application to another phase
+      tags:
+      - Applications
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        schema:
+          type: string
+        example: Bearer YOUR_API_KEY
+        description: Bearer credential for the authentication scheme required by this endpoint.
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 36
+        description: Application ID from `GET /api/v0/applications`.
+      responses:
+        '200':
+          description: 'Moves one application through a hiring process and manages discard reasons for rejected phases. Use `GET /api/v0/processes/{process_id}/phases` to discover valid phase IDs. When the target phase has `kind: "discarded"`, first call `GET /api/v0/applications/discard_reasons` and send one returned `id` as `discard_reason`; moving back to a non-discarded phase clears the stored reason.'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          slug:
+                            type: string
+                          deleted:
+                            type: boolean
+                          read:
+                            type: boolean
+                          messages_count:
+                            type: integer
+                          notes_count:
+                            type: integer
+                          unlocked:
+                            type: boolean
+                          unread_messages_from_webpro:
+                            type: integer
+                          unread_messages_from_company:
+                            type: integer
+                          discard_reason:
+                            nullable: true
+                            type: string
+                          expected_salary:
+                            type: integer
+                          reason_to_apply:
+                            type: string
+                          professional_background:
+                            type: string
+                          academic_background:
+                            type: string
+                          sent_at:
+                            type: integer
+                          created_at:
+                            type: integer
+                          updated_at:
+                            type: integer
+                          job:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          phase:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                  type:
+                                    type: string
+                                  attributes:
+                                    type: object
+                                    properties:
+                                      title:
+                                        type: string
+                                      position:
+                                        type: integer
+                                      kind:
+                                        type: string
+                                      reserved:
+                                        type: boolean
+                                      created_at:
+                                        type: integer
+                                      updated_at:
+                                        type: integer
+                                    required:
+                                    - title
+                                    - position
+                                    - kind
+                                    - reserved
+                                    - created_at
+                                    - updated_at
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          professional:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          answers:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                          messages:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                          notes:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                        required:
+                        - slug
+                        - deleted
+                        - read
+                        - messages_count
+                        - notes_count
+                        - unlocked
+                        - unread_messages_from_webpro
+                        - unread_messages_from_company
+                        - discard_reason
+                        - expected_salary
+                        - reason_to_apply
+                        - professional_background
+                        - academic_background
+                        - sent_at
+                        - created_at
+                        - updated_at
+                        - job
+                        - phase
+                        - professional
+                        - answers
+                        - messages
+                        - notes
+                    required:
+                    - id
+                    - type
+                    - attributes
+                required:
+                - data
+              example:
+                data:
+                  id: '36'
+                  type: application
+                  attributes:
+                    slug: 22a0d9e0a37d0594b10ada3c274b6312
+                    deleted: false
+                    read: false
+                    messages_count: 0
+                    notes_count: 0
+                    unlocked: true
+                    unread_messages_from_webpro: 0
+                    unread_messages_from_company: 0
+                    discard_reason: null
+                    expected_salary: 1000
+                    reason_to_apply: Acme builds software for modern recruiting teams.
+                    professional_background: Acme builds software for modern recruiting teams.
+                    academic_background: Acme builds software for modern recruiting teams.
+                    sent_at: 1784217392
+                    created_at: 1784217392
+                    updated_at: 1784217392
+                    job:
+                      data:
+                        id: 257
+                        type: job
+                    phase:
+                      data:
+                        id: '754'
+                        type: phase
+                        attributes:
+                          title: Seleccionados
+                          position: 2
+                          kind: regular
+                          reserved: false
+                          created_at: 1784217392
+                          updated_at: 1784217392
+                    professional:
+                      data:
+                        id: 121
+                        type: professional
+                    answers:
+                      data: []
+                    messages:
+                      data: []
+                    notes:
+                      data: []
+        '401':
+          description: 'Moves one application through a hiring process and manages discard reasons for rejected phases. Use `GET /api/v0/processes/{process_id}/phases` to discover valid phase IDs. When the target phase has `kind: "discarded"`, first call `GET /api/v0/applications/discard_reasons` and send one returned `id` as `discard_reason`; moving back to a non-discarded phase clears the stored reason.'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: (Status 401) Unauthorized access to the API
+                code: unauthorized
+        '404':
+          description: 'Moves one application through a hiring process and manages discard reasons for rejected phases. Use `GET /api/v0/processes/{process_id}/phases` to discover valid phase IDs. When the target phase has `kind: "discarded"`, first call `GET /api/v0/applications/discard_reasons` and send one returned `id` as `discard_reason`; moving back to a non-discarded phase clears the stored reason.'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              examples:
+                missing_or_out_of_process_phase:
+                  summary: Missing or out-of-process phase
+                  value:
+                    message: Record not found
+                    code: not_found
+        '422':
+          description: 'Moves one application through a hiring process and manages discard reasons for rejected phases. Use `GET /api/v0/processes/{process_id}/phases` to discover valid phase IDs. When the target phase has `kind: "discarded"`, first call `GET /api/v0/applications/discard_reasons` and send one returned `id` as `discard_reason`; moving back to a non-discarded phase clears the stored reason.'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              examples:
+                missing_discard_reason:
+                  summary: Missing discard reason
+                  value:
+                    message: discard_reason is required when moving an application to a discarded phase
+                    code: unprocessable_content
+                invalid_discard_reason:
+                  summary: Invalid discard reason
+                  value:
+                    message: discard_reason is not valid
+                    code: unprocessable_content
+                invalid_position:
+                  summary: Invalid position
+                  value:
+                    message: position must be an integer
+                    code: unprocessable_content
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phase_id:
+                  type: integer
+                  description: Target phase ID from `GET /api/v0/processes/{process_id}/phases`.
+                discard_reason:
+                  type: string
+                  description: 'Required only when the target phase has `kind: "discarded"`; use an `id` from `GET /api/v0/applications/discard_reasons`.'
+                position:
+                  type: integer
+                  description: Optional target card position within the target phase.
+                expand:
+                  type: array
+                  items:
+                    type: string
+              required:
+              - phase_id
+            examples:
+              move_to_regular_phase:
+                summary: Move to a regular phase
+                value:
+                  phase_id: 220
+                  expand:
+                  - phase
+              move_to_discarded_phase:
+                summary: Move to a discarded phase
+                value:
+                  phase_id: 222
+                  discard_reason: poor_fit
+                  expand:
+                  - phase
+              recover_from_discarded_phase:
+                summary: Recover from a discarded phase
+                value:
+                  phase_id: 220
+                  expand:
+                  - phase
+      operationId: moveApplicationPhase
+      description: 'Discover phase IDs with `GET /api/v0/processes/{process_id}/phases`. For phases with `kind: "discarded"`, discover valid `discard_reason` values with `GET /api/v0/applications/discard_reasons` and send one returned `id`. Moving back to a non-discarded phase clears the stored discard reason.'
+  /api/v0/applications/{id}:
+    get:
+      summary: Create an application
+      tags:
+      - Applications
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        schema:
+          type: string
+        example: Bearer YOUR_API_KEY
+        description: Bearer credential for the authentication scheme required by this endpoint.
+      - name: expand
+        in: query
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+        example:
+        - professional
+      - name: id
+        in: path
+        required: true
+        schema:
+          oneOf:
+          - type: integer
+          - type: string
+          type: integer
+        example: 1
+        description: Application ID from `GET /api/v0/applications`.
+      - name: process_id
+        in: query
+        required: false
+        schema:
+          type: integer
+        example: 330
+      responses:
+        '200':
+          description: Creates a new job application on behalf of a professional.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          slug:
+                            type: string
+                          deleted:
+                            type: boolean
+                          read:
+                            type: boolean
+                          messages_count:
+                            type: integer
+                          notes_count:
+                            type: integer
+                          unlocked:
+                            type: boolean
+                          unread_messages_from_webpro:
+                            type: integer
+                          unread_messages_from_company:
+                            type: integer
+                          discard_reason:
+                            nullable: true
+                          expected_salary:
+                            type: integer
+                            nullable: true
+                          reason_to_apply:
+                            type: string
+                          professional_background:
+                            type: string
+                          academic_background:
+                            type: string
+                          sent_at:
+                            type: integer
+                          created_at:
+                            type: integer
+                          updated_at:
+                            type: integer
+                          job:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          phase:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                            nullable: true
+                          professional:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                  type:
+                                    type: string
+                                  attributes:
+                                    type: object
+                                    properties:
+                                      slug:
+                                        type: string
+                                      email:
+                                        type: string
+                                      name:
+                                        type: string
+                                      location:
+                                        nullable: true
+                                      description:
+                                        type: string
+                                        nullable: true
+                                      image:
+                                        type: object
+                                        properties:
+                                          url:
+                                            nullable: true
+                                          thumb:
+                                            type: object
+                                            properties:
+                                              url:
+                                                nullable: true
+                                            required:
+                                            - url
+                                        required:
+                                        - url
+                                        - thumb
+                                        nullable: true
+                                      github:
+                                        type: string
+                                        nullable: true
+                                      twitter:
+                                        nullable: true
+                                      linkedin:
+                                        nullable: true
+                                      portfolio:
+                                        nullable: true
+                                      min_salary:
+                                        nullable: true
+                                      professional_background:
+                                        type: string
+                                        nullable: true
+                                      academic_background:
+                                        type: string
+                                        nullable: true
+                                      uploaded_cv:
+                                        type: object
+                                        properties:
+                                          url:
+                                            type: string
+                                            nullable: true
+                                        required:
+                                        - url
+                                      country:
+                                        type: string
+                                        nullable: true
+                                      stackoverflow:
+                                        nullable: true
+                                      youtube:
+                                        nullable: true
+                                      gitlab:
+                                        nullable: true
+                                      phone:
+                                        nullable: true
+                                      created_at:
+                                        type: integer
+                                      updated_at:
+                                        type: integer
+                                    required:
+                                    - slug
+                                    - email
+                                    - name
+                                    - location
+                                    - description
+                                    - image
+                                    - github
+                                    - twitter
+                                    - linkedin
+                                    - portfolio
+                                    - min_salary
+                                    - professional_background
+                                    - academic_background
+                                    - uploaded_cv
+                                    - country
+                                    - stackoverflow
+                                    - youtube
+                                    - gitlab
+                                    - phone
+                                    - created_at
+                                    - updated_at
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          answers:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: integer
+                                    type:
+                                      type: string
+                                  required:
+                                  - id
+                                  - type
+                            required:
+                            - data
+                          messages:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: string
+                                    type:
+                                      type: string
+                                    attributes:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: integer
+                                        text:
+                                          type: string
+                                        slug:
+                                          type: string
+                                        read:
+                                          type: boolean
+                                        subject:
+                                          nullable: true
+                                        is_email:
+                                          type: boolean
+                                        state:
+                                          type: string
+                                        source:
+                                          type: string
+                                        pending_release:
+                                          type: boolean
+                                        editable:
+                                          type: boolean
+                                        author:
+                                          type: string
+                                        created_at:
+                                          type: integer
+                                        updated_at:
+                                          type: integer
+                                        release_at:
+                                          type: integer
+                                        editable_until_at:
+                                          type: integer
+                                      required:
+                                      - id
+                                      - text
+                                      - slug
+                                      - read
+                                      - subject
+                                      - is_email
+                                      - state
+                                      - source
+                                      - pending_release
+                                      - editable
+                                      - author
+                                      - created_at
+                                      - updated_at
+                                      - release_at
+                                      - editable_until_at
+                                  required:
+                                  - id
+                                  - type
+                                  - attributes
+                            required:
+                            - data
+                          notes:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                        required:
+                        - slug
+                        - deleted
+                        - read
+                        - messages_count
+                        - notes_count
+                        - unlocked
+                        - unread_messages_from_webpro
+                        - unread_messages_from_company
+                        - discard_reason
+                        - expected_salary
+                        - reason_to_apply
+                        - professional_background
+                        - academic_background
+                        - sent_at
+                        - created_at
+                        - updated_at
+                        - job
+                        - phase
+                        - professional
+                        - answers
+                        - messages
+                        - notes
+                    required:
+                    - id
+                    - type
+                    - attributes
+                required:
+                - data
+              example:
+                data:
+                  id: '88'
+                  type: application
+                  attributes:
+                    slug: dde5f0dfec34a80352a6cdfcc894158e
+                    deleted: false
+                    read: false
+                    messages_count: 0
+                    notes_count: 0
+                    unlocked: true
+                    unread_messages_from_webpro: 0
+                    unread_messages_from_company: 0
+                    discard_reason: null
+                    expected_salary: null
+                    reason_to_apply: OPQ RST UVXYZOPQ RST UVXYZOPQ RST UVXYZOPQ RST UVXYZOPQ RST UVXYZOPQ RST UVXYZOPQ RST UVXYZOPQ RST UVXYZOPQ RST UVXYZOPQ RST UVXYZ
+                    professional_background: ABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHI
+                    academic_background: ''
+                    sent_at: 1784217442
+                    created_at: 1784217442
+                    updated_at: 1784217442
+                    job:
+                      data:
+                        id: 374
+                        type: job
+                    phase: null
+                    professional:
+                      data:
+                        id: '4'
+                        type: professional
+                        attributes:
+                          slug: 39b3ae5570429b1caf4ac0f25713b38c
+                          email: j@doe.com
+                          name: Submitted Candidate
+                          location: null
+                          description: null
+                          image: null
+                          github: null
+                          twitter: null
+                          linkedin: null
+                          portfolio: null
+                          min_salary: null
+                          professional_background: null
+                          academic_background: null
+                          uploaded_cv:
+                            url: null
+                          country: null
+                          stackoverflow: null
+                          youtube: null
+                          gitlab: null
+                          phone: null
+                          created_at: 1784217442
+                          updated_at: 1784217442
+                    answers:
+                      data: []
+                    messages:
+                      data: []
+                    notes:
+                      data: []
+        '401':
+          description: Returns the details of a specific application by its ID. Use this as the canonical follow-up read when you start from an application ID in a webhook payload or another collapsed relationship. Pass `expand[]=professional` when you need the related professional in the same response without making a separate professionals request.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: (Status 401) Unauthorized access to the API
+                code: unauthorized
+        '404':
+          description: Returns the details of a specific application by its ID. Use this as the canonical follow-up read when you start from an application ID in a webhook payload or another collapsed relationship. Pass `expand[]=professional` when you need the related professional in the same response without making a separate professionals request.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: Record not found
+                code: not_found
+      operationId: retrieveApplication
+    put:
+      summary: Update an application
+      tags:
+      - Applications
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        schema:
+          type: string
+        example: Bearer YOUR_API_KEY
+        description: Bearer credential for the authentication scheme required by this endpoint.
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 1
+        description: Application ID from `GET /api/v0/applications`.
+      responses:
+        '200':
+          description: Updates an existing job application by its ID.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          slug:
+                            type: string
+                          deleted:
+                            type: boolean
+                          read:
+                            type: boolean
+                          messages_count:
+                            type: integer
+                          notes_count:
+                            type: integer
+                          unlocked:
+                            type: boolean
+                          unread_messages_from_webpro:
+                            type: integer
+                          unread_messages_from_company:
+                            type: integer
+                          discard_reason:
+                            nullable: true
+                          expected_salary:
+                            type: integer
+                          reason_to_apply:
+                            type: string
+                          professional_background:
+                            type: string
+                          academic_background:
+                            type: string
+                          sent_at:
+                            type: integer
+                          created_at:
+                            type: integer
+                          updated_at:
+                            type: integer
+                          job:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          phase:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          professional:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          answers:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: integer
+                                    type:
+                                      type: string
+                                  required:
+                                  - id
+                                  - type
+                            required:
+                            - data
+                          messages:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                          notes:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items: {}
+                            required:
+                            - data
+                        required:
+                        - slug
+                        - deleted
+                        - read
+                        - messages_count
+                        - notes_count
+                        - unlocked
+                        - unread_messages_from_webpro
+                        - unread_messages_from_company
+                        - discard_reason
+                        - expected_salary
+                        - reason_to_apply
+                        - professional_background
+                        - academic_background
+                        - sent_at
+                        - created_at
+                        - updated_at
+                        - job
+                        - phase
+                        - professional
+                        - answers
+                        - messages
+                        - notes
+                    required:
+                    - id
+                    - type
+                    - attributes
+                required:
+                - data
+              example:
+                data:
+                  id: '82'
+                  type: application
+                  attributes:
+                    slug: eeebd0ce29a2f2f41795fdaad28233f6
+                    deleted: false
+                    read: false
+                    messages_count: 0
+                    notes_count: 0
+                    unlocked: true
+                    unread_messages_from_webpro: 0
+                    unread_messages_from_company: 0
+                    discard_reason: null
+                    expected_salary: 1000
+                    reason_to_apply: Acme builds software for modern recruiting teams.
+                    professional_background: ABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHI
+                    academic_background: ''
+                    sent_at: 1784217440
+                    created_at: 1784217440
+                    updated_at: 1784217440
+                    job:
+                      data:
+                        id: 366
+                        type: job
+                    phase:
+                      data:
+                        id: 1189
+                        type: phase
+                    professional:
+                      data:
+                        id: 169
+                        type: professional
+                    answers:
+                      data:
+                      - id: 134
+                        type: answer
+                      - id: 135
+                        type: answer
+                      - id: 136
+                        type: answer
+                    messages:
+                      data: []
+                    notes:
+                      data: []
+        '401':
+          description: Updates an existing job application by its ID.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: (Status 401) Unauthorized access to the API
+                code: unauthorized
+        '404':
+          description: Updates an existing job application by its ID.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: Record not found
+                code: not_found
+        '422':
+          description: Updates an existing job application by its ID.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                required:
+                - message
+                - code
+              example:
+                message: email parameter is required
+                code: unprocessable_content
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                job_id:
+                  type: string
+                email:
+                  type: string
+                description:
+                  type: string
+                professional_background:
+                  type: string
+                answers:
+                  type: string
+              required:
+              - job_id
+              - email
+              - description
+              - professional_background
+            example:
+              job_id: '366'
+              email: j@doe.com
+              description: Updated description
+              professional_background: ABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHIABC DEF GHI
+              answers: English advanced
+      operationId: updateApplication
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API key
+      description: 'Company authentication for private endpoints. Send `Authorization: Bearer <api_key>`.'
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Professional JWT token obtained via /api/v0/auth_tokens
+    BoardSecretKey:
+      type: http
+      scheme: bearer
+      bearerFormat: Board secret
+      description: 'Board+ HMAC secret key. Send `Authorization: Bearer <board_secret_key>`. The legacy query-string form (`?secret_key=...`) is still accepted by the server but is discouraged because secrets leak into logs, browser history, and referrers.'
+x-tagGroups:
+- name: Public
+  tags:
+  - Categories
+  - Companies
+  - Countries
+  - Headcounts
+  - Industries
+  - Insights
+  - Modalities
+  - Perks
+  - Regions
+  - Search
+  - Seniorities
+  - Tags
+  - Tenant Cities
+- name: Private
+  tags:
+  - Applications
+  - Company shells
+  - Jobs
+  - Matching
+  - Processes
+  - Professionals
+  - Webhooks
+- name: Authentication
+  tags:
+  - Authentication
+- name: Board+
+  tags:
+  - Board+
