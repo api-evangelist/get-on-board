@@ -1,0 +1,16 @@
+generated: '2026-07-19'
+method: generated
+source: openapi/get-on-board-openapi-original.yml
+skills:
+- file: get-on-board-search-jobs.md
+  name: Search tech jobs on Get on Board
+  api: openapi/get-on-board-openapi-original.yml
+  operations: [listCategories, searchJobs, listCategoryJobs, retrieveCompany]
+- file: get-on-board-post-job-and-manage-pipeline.md
+  name: Post a job and manage the hiring pipeline
+  api: openapi/get-on-board-openapi-original.yml
+  operations: [createCompanyPrivateJob, submitCompanyPrivateJob, publishCompanyPrivateJob, listJobProcesses, listApplications, listProcessPhases, listApplicationDiscardReasons, moveApplicationPhase]
+- file: get-on-board-subscribe-webhooks.md
+  name: Subscribe to Get on Board webhooks
+  api: openapi/get-on-board-openapi-original.yml
+  operations: [listWebhookEvents, createWebhookEndpoint, listWebhookEndpoints, retrieveWebhookEndpoint, updateWebhookEndpoint, deleteWebhookEndpoint]

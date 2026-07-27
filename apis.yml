@@ -1,20 +1,366 @@
 aid: get-on-board
 name: Get On Board
-description: Get On Board is a company surfaced as a portfolio company of 500-global and added to the
-  API Evangelist network as a stub for enrichment. This profile is a lead awaiting the enrichment pipeline.
+description: >-
+  Get on Board (getonbrd.com) is the leading tech-recruitment platform and
+  applicant tracking system (ATS) for Latin America, connecting companies with a
+  talent database of 1M+ technology professionals. Companies post jobs, run
+  structured hiring processes, and access candidate profiles. Get on Board
+  publishes a public REST API (v0) with an OpenAPI 3.0 specification, a sandbox
+  environment, outbound webhooks, and a first-party Ruby client library. The
+  public API exposes job categories, company profiles, published jobs, and a job
+  search endpoint with no authentication; a private Companies API (API-key
+  authenticated, subscription-gated) covers jobs, applications, hiring processes,
+  professionals, company shells, and webhook management. Surfaced as a portfolio
+  company of 500 Global and enriched by the API Evangelist pipeline.
 url: https://raw.githubusercontent.com/api-evangelist/get-on-board/refs/heads/main/apis.yml
+accessModel:
+  pricing: unknown
+  onboarding: open
+  trial: false
+  try_now: false
+  public: true
+  label: Open access
+  confidence: medium
+  source:
+  - authentication
+  generated: '2026-07-22'
+  method: derived
+image: https://d2dgum4gsvdsrq.cloudfront.net/assets/og_images/og-image-4d63c74882f757bdb9589139bc6475e094fec168aeba32184c24b0f5a8de8a35.png
 x-type: company
 x-source: vc-portfolio
 x-backed-by:
 - 500-global
-x-tier: stub
+x-tier: enriched
 x-tier-reason: portfolio-lead
 specificationVersion: '0.20'
 created: '2026-07-17'
-modified: '2026-07-17'
+modified: '2026-07-19'
 tags:
 - Company
-apis: []
+- Recruitment
+- Jobs
+- Hiring
+- ATS
+- Talent
+- Developers
+- Latin America
+apis:
+- aid: get-on-board:get-on-board-applications-api
+  name: Get On Board Applications API
+  description: Job applications management
+  humanURL: https://www.getonbrd.com/api-doc.html
+  baseURL: https://www.getonbrd.com/api/v0/
+  tags:
+  - Applications
+  properties:
+  - type: OpenAPI
+    url: openapi/get-on-board-applications-api-openapi.yml
+  - type: Documentation
+    url: https://www.getonbrd.com/api-doc.html
+  - type: APIReference
+    url: https://www.getonbrd.com/api-doc.html
+- aid: get-on-board:get-on-board-authentication-api
+  name: Get On Board Authentication API
+  description: Token-based authentication
+  humanURL: https://www.getonbrd.com/api-doc.html
+  baseURL: https://www.getonbrd.com/api/v0/
+  tags:
+  - Authentication
+  properties:
+  - type: OpenAPI
+    url: openapi/get-on-board-authentication-api-openapi.yml
+  - type: Documentation
+    url: https://www.getonbrd.com/api-doc.html
+  - type: APIReference
+    url: https://www.getonbrd.com/api-doc.html
+- aid: get-on-board:get-on-board-board-api
+  name: Get On Board Board+ API
+  description: Private board integration
+  humanURL: https://www.getonbrd.com/api-doc.html
+  baseURL: https://www.getonbrd.com/api/v0/
+  tags:
+  - Board+
+  properties:
+  - type: OpenAPI
+    url: openapi/get-on-board-board-api-openapi.yml
+  - type: Documentation
+    url: https://www.getonbrd.com/api-doc.html
+  - type: APIReference
+    url: https://www.getonbrd.com/api-doc.html
+- aid: get-on-board:get-on-board-categories-api
+  name: Get On Board Categories API
+  description: Job categories
+  humanURL: https://www.getonbrd.com/api-doc.html
+  baseURL: https://www.getonbrd.com/api/v0/
+  tags:
+  - Categories
+  properties:
+  - type: OpenAPI
+    url: openapi/get-on-board-categories-api-openapi.yml
+  - type: Documentation
+    url: https://www.getonbrd.com/api-doc.html
+  - type: APIReference
+    url: https://www.getonbrd.com/api-doc.html
+- aid: get-on-board:get-on-board-companies-api
+  name: Get On Board Companies API
+  description: Company profiles and their jobs
+  humanURL: https://www.getonbrd.com/api-doc.html
+  baseURL: https://www.getonbrd.com/api/v0/
+  tags:
+  - Companies
+  properties:
+  - type: OpenAPI
+    url: openapi/get-on-board-companies-api-openapi.yml
+  - type: Documentation
+    url: https://www.getonbrd.com/api-doc.html
+  - type: APIReference
+    url: https://www.getonbrd.com/api-doc.html
+- aid: get-on-board:get-on-board-company-shells-api
+  name: Get On Board Company shells API
+  description: >-
+    Post jobs under your client companies' brands from a single account. A company shell is a lightweight
+    public company profile (name, logo, description, its own `/companies/<slug>` page) owned by your partner
+    account. Create shells for the companies you recruit for, then pass a shell's slug as `company_shell_id`
+    when creating or updating a job: the public job page, company profile, feeds, and public API all show
+    the client's brand, while applications, hiring processes, and billing stay on your account. Built
+    for ATS integrations and agencies managing many client companies. Available to authorized partner
+    accounts only — other API keys receive 403; contact Get on Board to become a partner. Not related
+    to the public Companies endpoints.
+  humanURL: https://www.getonbrd.com/api-doc.html
+  baseURL: https://www.getonbrd.com/api/v0/
+  tags:
+  - Company shells
+  properties:
+  - type: OpenAPI
+    url: openapi/get-on-board-company-shells-api-openapi.yml
+  - type: Documentation
+    url: https://www.getonbrd.com/api-doc.html
+  - type: APIReference
+    url: https://www.getonbrd.com/api-doc.html
+- aid: get-on-board:get-on-board-countries-api
+  name: Get On Board Countries API
+  description: Available countries
+  humanURL: https://www.getonbrd.com/api-doc.html
+  baseURL: https://www.getonbrd.com/api/v0/
+  tags:
+  - Countries
+  properties:
+  - type: OpenAPI
+    url: openapi/get-on-board-countries-api-openapi.yml
+  - type: Documentation
+    url: https://www.getonbrd.com/api-doc.html
+  - type: APIReference
+    url: https://www.getonbrd.com/api-doc.html
+- aid: get-on-board:get-on-board-headcounts-api
+  name: Get On Board Headcounts API
+  description: Company headcount ranges
+  humanURL: https://www.getonbrd.com/api-doc.html
+  baseURL: https://www.getonbrd.com/api/v0/
+  tags:
+  - Headcounts
+  properties:
+  - type: OpenAPI
+    url: openapi/get-on-board-headcounts-api-openapi.yml
+  - type: Documentation
+    url: https://www.getonbrd.com/api-doc.html
+  - type: APIReference
+    url: https://www.getonbrd.com/api-doc.html
+- aid: get-on-board:get-on-board-industries-api
+  name: Get On Board Industries API
+  description: Industry classifications
+  humanURL: https://www.getonbrd.com/api-doc.html
+  baseURL: https://www.getonbrd.com/api/v0/
+  tags:
+  - Industries
+  properties:
+  - type: OpenAPI
+    url: openapi/get-on-board-industries-api-openapi.yml
+  - type: Documentation
+    url: https://www.getonbrd.com/api-doc.html
+  - type: APIReference
+    url: https://www.getonbrd.com/api-doc.html
+- aid: get-on-board:get-on-board-insights-api
+  name: Get On Board Insights API
+  description: Market insights and analytics
+  humanURL: https://www.getonbrd.com/api-doc.html
+  baseURL: https://www.getonbrd.com/api/v0/
+  tags:
+  - Insights
+  properties:
+  - type: OpenAPI
+    url: openapi/get-on-board-insights-api-openapi.yml
+  - type: Documentation
+    url: https://www.getonbrd.com/api-doc.html
+  - type: APIReference
+    url: https://www.getonbrd.com/api-doc.html
+- aid: get-on-board:get-on-board-jobs-api
+  name: Get On Board Jobs API
+  description: Job posting CRUD operations
+  humanURL: https://www.getonbrd.com/api-doc.html
+  baseURL: https://www.getonbrd.com/api/v0/
+  tags:
+  - Jobs
+  properties:
+  - type: OpenAPI
+    url: openapi/get-on-board-jobs-api-openapi.yml
+  - type: Documentation
+    url: https://www.getonbrd.com/api-doc.html
+  - type: APIReference
+    url: https://www.getonbrd.com/api-doc.html
+- aid: get-on-board:get-on-board-matching-api
+  name: Get On Board Matching API
+  description: Job matching for professionals
+  humanURL: https://www.getonbrd.com/api-doc.html
+  baseURL: https://www.getonbrd.com/api/v0/
+  tags:
+  - Matching
+  properties:
+  - type: OpenAPI
+    url: openapi/get-on-board-matching-api-openapi.yml
+  - type: Documentation
+    url: https://www.getonbrd.com/api-doc.html
+  - type: APIReference
+    url: https://www.getonbrd.com/api-doc.html
+- aid: get-on-board:get-on-board-modalities-api
+  name: Get On Board Modalities API
+  description: Employment modality reference data (full-time, part-time, freelance, etc.)
+  humanURL: https://www.getonbrd.com/api-doc.html
+  baseURL: https://www.getonbrd.com/api/v0/
+  tags:
+  - Modalities
+  properties:
+  - type: OpenAPI
+    url: openapi/get-on-board-modalities-api-openapi.yml
+  - type: Documentation
+    url: https://www.getonbrd.com/api-doc.html
+  - type: APIReference
+    url: https://www.getonbrd.com/api-doc.html
+- aid: get-on-board:get-on-board-perks-api
+  name: Get On Board Perks API
+  description: Job perks and benefits
+  humanURL: https://www.getonbrd.com/api-doc.html
+  baseURL: https://www.getonbrd.com/api/v0/
+  tags:
+  - Perks
+  properties:
+  - type: OpenAPI
+    url: openapi/get-on-board-perks-api-openapi.yml
+  - type: Documentation
+    url: https://www.getonbrd.com/api-doc.html
+  - type: APIReference
+    url: https://www.getonbrd.com/api-doc.html
+- aid: get-on-board:get-on-board-processes-api
+  name: Get On Board Processes API
+  description: Hiring process management
+  humanURL: https://www.getonbrd.com/api-doc.html
+  baseURL: https://www.getonbrd.com/api/v0/
+  tags:
+  - Processes
+  properties:
+  - type: OpenAPI
+    url: openapi/get-on-board-processes-api-openapi.yml
+  - type: Documentation
+    url: https://www.getonbrd.com/api-doc.html
+  - type: APIReference
+    url: https://www.getonbrd.com/api-doc.html
+- aid: get-on-board:get-on-board-professionals-api
+  name: Get On Board Professionals API
+  description: Professional profiles within processes
+  humanURL: https://www.getonbrd.com/api-doc.html
+  baseURL: https://www.getonbrd.com/api/v0/
+  tags:
+  - Professionals
+  properties:
+  - type: OpenAPI
+    url: openapi/get-on-board-professionals-api-openapi.yml
+  - type: Documentation
+    url: https://www.getonbrd.com/api-doc.html
+  - type: APIReference
+    url: https://www.getonbrd.com/api-doc.html
+- aid: get-on-board:get-on-board-regions-api
+  name: Get On Board Regions API
+  description: Geographic regions
+  humanURL: https://www.getonbrd.com/api-doc.html
+  baseURL: https://www.getonbrd.com/api/v0/
+  tags:
+  - Regions
+  properties:
+  - type: OpenAPI
+    url: openapi/get-on-board-regions-api-openapi.yml
+  - type: Documentation
+    url: https://www.getonbrd.com/api-doc.html
+  - type: APIReference
+    url: https://www.getonbrd.com/api-doc.html
+- aid: get-on-board:get-on-board-search-api
+  name: Get On Board Search API
+  description: Full-text job search
+  humanURL: https://www.getonbrd.com/api-doc.html
+  baseURL: https://www.getonbrd.com/api/v0/
+  tags:
+  - Search
+  properties:
+  - type: OpenAPI
+    url: openapi/get-on-board-search-api-openapi.yml
+  - type: Documentation
+    url: https://www.getonbrd.com/api-doc.html
+  - type: APIReference
+    url: https://www.getonbrd.com/api-doc.html
+- aid: get-on-board:get-on-board-seniorities-api
+  name: Get On Board Seniorities API
+  description: Seniority levels
+  humanURL: https://www.getonbrd.com/api-doc.html
+  baseURL: https://www.getonbrd.com/api/v0/
+  tags:
+  - Seniorities
+  properties:
+  - type: OpenAPI
+    url: openapi/get-on-board-seniorities-api-openapi.yml
+  - type: Documentation
+    url: https://www.getonbrd.com/api-doc.html
+  - type: APIReference
+    url: https://www.getonbrd.com/api-doc.html
+- aid: get-on-board:get-on-board-tags-api
+  name: Get On Board Tags API
+  description: Skill and technology tags
+  humanURL: https://www.getonbrd.com/api-doc.html
+  baseURL: https://www.getonbrd.com/api/v0/
+  tags:
+  - Tags
+  properties:
+  - type: OpenAPI
+    url: openapi/get-on-board-tags-api-openapi.yml
+  - type: Documentation
+    url: https://www.getonbrd.com/api-doc.html
+  - type: APIReference
+    url: https://www.getonbrd.com/api-doc.html
+- aid: get-on-board:get-on-board-tenant-cities-api
+  name: Get On Board Tenant Cities API
+  description: Cities with active job markets
+  humanURL: https://www.getonbrd.com/api-doc.html
+  baseURL: https://www.getonbrd.com/api/v0/
+  tags:
+  - Tenant Cities
+  properties:
+  - type: OpenAPI
+    url: openapi/get-on-board-tenant-cities-api-openapi.yml
+  - type: Documentation
+    url: https://www.getonbrd.com/api-doc.html
+  - type: APIReference
+    url: https://www.getonbrd.com/api-doc.html
+- aid: get-on-board:get-on-board-webhooks-api
+  name: Get On Board Webhooks API
+  description: Webhook endpoints and events
+  humanURL: https://www.getonbrd.com/api-doc.html
+  baseURL: https://www.getonbrd.com/api/v0/
+  tags:
+  - Webhooks
+  properties:
+  - type: OpenAPI
+    url: openapi/get-on-board-webhooks-api-openapi.yml
+  - type: Documentation
+    url: https://www.getonbrd.com/api-doc.html
+  - type: APIReference
+    url: https://www.getonbrd.com/api-doc.html
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
@@ -23,3 +369,62 @@ maintainers:
 common:
 - type: Website
   url: https://getonbrd.com
+- type: Documentation
+  url: https://www.getonbrd.com/api-doc.html
+- type: APIReference
+  url: https://www.getonbrd.com/api-doc.html
+- type: Blog
+  url: https://www.getonbrd.com/blog/posts
+- type: GitHubOrganization
+  url: https://github.com/getonbrd
+- type: Pricing
+  url: https://www.getonbrd.com/pricing
+- type: SignUp
+  url: https://www.getonbrd.com/companies/signup
+- type: TermsOfService
+  url: https://www.getonbrd.com/pages/get-on-board-terms-and-conditions-agreement
+- type: PrivacyPolicy
+  url: https://www.getonbrd.com/about/privacy
+- type: Support
+  url: mailto:team@getonbrd.com
+- type: LLMsTxt
+  url: llms/get-on-board-llms.txt
+- type: WellKnown
+  url: well-known/get-on-board-well-known.yml
+- type: SecurityTxt
+  url: well-known/get-on-board-security.txt
+- type: Packages
+  url: packages/get-on-board-packages.yml
+- type: SDKs
+  url: packages/get-on-board-packages.yml
+- type: Sandbox
+  url: sandbox/get-on-board-sandbox.yml
+- type: Conventions
+  url: conventions/get-on-board-conventions.yml
+- type: ErrorCatalog
+  url: errors/get-on-board-problem-types.yml
+- type: Conformance
+  url: conformance/get-on-board-conformance.yml
+- type: Lifecycle
+  url: lifecycle/get-on-board-lifecycle.yml
+- type: MCPServer
+  url: mcp/get-on-board-mcp.yml
+- type: DataModel
+  url: data-model/get-on-board-data-model.yml
+- type: Webhooks
+  url: asyncapi/get-on-board-webhooks.yml
+- type: AgentSkill
+  url: skills/_index.yml
+- type: Authentication
+  url: authentication/get-on-board-authentication.yml
+- type: Security
+  url: https://www.getonbrd.com/.well-known/security.txt
+- type: VulnerabilityDisclosure
+  url: security/get-on-board-vulnerability-disclosure.yml
+- type: DomainSecurity
+  url: security/get-on-board-domain-security.yml
+x-enrichment:
+  date: '2026-07-19'
+  status: backfilled
+  pass: local-v1
+  note: backfilled from .gitignore signal + verified work evidence

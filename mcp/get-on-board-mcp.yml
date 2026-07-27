@@ -1,0 +1,343 @@
+generated: '2026-07-19'
+method: derived
+status: candidate
+source: openapi/get-on-board-openapi-original.yml
+note: >-
+  No official hosted/remote MCP server was found for Get on Board. This is a
+  candidate tool list derived one-per-operation from the published OpenAPI;
+  public (unauthenticated) operations are the natural first agent surface.
+server:
+  name: get-on-board
+  transport: http
+  url: null
+tools:
+- name: listApplications
+  description: "List applications"
+  method: GET
+  path: /api/v0/applications
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#listApplications
+- name: createApplication
+  description: "Create an application"
+  method: POST
+  path: /api/v0/applications
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#createApplication
+- name: listApplicationDiscardReasons
+  description: "List application discard reasons"
+  method: GET
+  path: /api/v0/applications/discard_reasons
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#listApplicationDiscardReasons
+- name: moveApplicationPhase
+  description: "Move an application to another phase"
+  method: PATCH
+  path: /api/v0/applications/{application_id}/phase
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#moveApplicationPhase
+- name: retrieveApplication
+  description: "Create an application"
+  method: GET
+  path: /api/v0/applications/{id}
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#retrieveApplication
+- name: updateApplication
+  description: "Update an application"
+  method: PUT
+  path: /api/v0/applications/{id}
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#updateApplication
+- name: refreshAuthToken
+  description: "Refresh auth token"
+  method: POST
+  path: /api/v0/auth_tokens
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#refreshAuthToken
+- name: retrieveBoardProfessional
+  description: "Retrieve a board professional"
+  method: GET
+  path: /api/v0/board/professionals
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#retrieveBoardProfessional
+- name: whitelistBoardProfessionals
+  description: "Whitelist board professionals"
+  method: POST
+  path: /api/v0/board/professionals
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#whitelistBoardProfessionals
+- name: removeBoardProfessionals
+  description: "Remove board professionals"
+  method: DELETE
+  path: /api/v0/board/professionals
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#removeBoardProfessionals
+- name: listCategories
+  description: "List job categories"
+  method: GET
+  path: /api/v0/categories
+  public: true
+  source_operation: openapi/get-on-board-openapi-original.yml#listCategories
+- name: listCategoryJobs
+  description: "List jobs by category"
+  method: GET
+  path: /api/v0/categories/{category_id}/jobs
+  public: true
+  source_operation: openapi/get-on-board-openapi-original.yml#listCategoryJobs
+- name: listTenantCities
+  description: "List tenant cities"
+  method: GET
+  path: /api/v0/cities
+  public: true
+  source_operation: openapi/get-on-board-openapi-original.yml#listTenantCities
+- name: listCompanies
+  description: "List companies"
+  method: GET
+  path: /api/v0/companies
+  public: true
+  source_operation: openapi/get-on-board-openapi-original.yml#listCompanies
+- name: listCompanyJobs
+  description: "List jobs by company"
+  method: GET
+  path: /api/v0/companies/{company_id}/jobs
+  public: true
+  source_operation: openapi/get-on-board-openapi-original.yml#listCompanyJobs
+- name: retrieveCompany
+  description: "Show company details"
+  method: GET
+  path: /api/v0/companies/{id}
+  public: true
+  source_operation: openapi/get-on-board-openapi-original.yml#retrieveCompany
+- name: listCompanyShells
+  description: "List company shells"
+  method: GET
+  path: /api/v0/company_shells
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#listCompanyShells
+- name: createCompanyShell
+  description: "List company shells"
+  method: POST
+  path: /api/v0/company_shells
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#createCompanyShell
+- name: retrieveCompanyShell
+  description: "List company shells"
+  method: GET
+  path: /api/v0/company_shells/{id}
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#retrieveCompanyShell
+- name: updateCompanyShell
+  description: "List company shells"
+  method: PUT
+  path: /api/v0/company_shells/{id}
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#updateCompanyShell
+- name: listCountries
+  description: "List countries"
+  method: GET
+  path: /api/v0/countries
+  public: true
+  source_operation: openapi/get-on-board-openapi-original.yml#listCountries
+- name: listHeadcounts
+  description: "List headcounts"
+  method: GET
+  path: /api/v0/headcounts
+  public: true
+  source_operation: openapi/get-on-board-openapi-original.yml#listHeadcounts
+- name: listIndustries
+  description: "List industries"
+  method: GET
+  path: /api/v0/industries
+  public: true
+  source_operation: openapi/get-on-board-openapi-original.yml#listIndustries
+- name: retrieveInsight
+  description: "Get an insight"
+  method: GET
+  path: /api/v0/insights/{id}
+  public: true
+  source_operation: openapi/get-on-board-openapi-original.yml#retrieveInsight
+- name: listCompanyPrivateJobs
+  description: "List company jobs"
+  method: GET
+  path: /api/v0/jobs
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#listCompanyPrivateJobs
+- name: createCompanyPrivateJob
+  description: "Create a job"
+  method: POST
+  path: /api/v0/jobs
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#createCompanyPrivateJob
+- name: retrieveCompanyPrivateJob
+  description: "Retrieve a job"
+  method: GET
+  path: /api/v0/jobs/{id}
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#retrieveCompanyPrivateJob
+- name: updateCompanyPrivateJob
+  description: "Update a job"
+  method: PUT
+  path: /api/v0/jobs/{id}
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#updateCompanyPrivateJob
+- name: deleteCompanyPrivateJob
+  description: "Delete a job"
+  method: DELETE
+  path: /api/v0/jobs/{id}
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#deleteCompanyPrivateJob
+- name: listJobProcesses
+  description: "List job processes"
+  method: GET
+  path: /api/v0/jobs/{job_id}/processes
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#listJobProcesses
+- name: publishCompanyPrivateJob
+  description: "Republish a job"
+  method: POST
+  path: /api/v0/jobs/{job_id}/publish
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#publishCompanyPrivateJob
+- name: deleteJobQuestion
+  description: "Delete a job question"
+  method: DELETE
+  path: /api/v0/jobs/{job_id}/questions/{id}
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#deleteJobQuestion
+- name: submitCompanyPrivateJob
+  description: "Submit a job"
+  method: POST
+  path: /api/v0/jobs/{job_id}/submit
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#submitCompanyPrivateJob
+- name: unpublishCompanyPrivateJob
+  description: "Unpublish a job"
+  method: POST
+  path: /api/v0/jobs/{job_id}/unpublish
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#unpublishCompanyPrivateJob
+- name: listMatchingJobs
+  description: "List matching jobs"
+  method: GET
+  path: /api/v0/matching_jobs
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#listMatchingJobs
+- name: listModalities
+  description: "List modalities"
+  method: GET
+  path: /api/v0/modalities
+  public: true
+  source_operation: openapi/get-on-board-openapi-original.yml#listModalities
+- name: listPerks
+  description: "List perks"
+  method: GET
+  path: /api/v0/perks
+  public: true
+  source_operation: openapi/get-on-board-openapi-original.yml#listPerks
+- name: listProcesses
+  description: "List processes"
+  method: GET
+  path: /api/v0/processes
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#listProcesses
+- name: retrieveProcess
+  description: "Retrieve a process"
+  method: GET
+  path: /api/v0/processes/{id}
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#retrieveProcess
+- name: listProcessPhases
+  description: "List process phases"
+  method: GET
+  path: /api/v0/processes/{process_id}/phases
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#listProcessPhases
+- name: listProfessionals
+  description: "List professionals"
+  method: GET
+  path: /api/v0/professionals
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#listProfessionals
+- name: retrieveProfessional
+  description: "Retrieve a professional"
+  method: GET
+  path: /api/v0/professionals/{id}
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#retrieveProfessional
+- name: listRegions
+  description: "List regions"
+  method: GET
+  path: /api/v0/regions
+  public: true
+  source_operation: openapi/get-on-board-openapi-original.yml#listRegions
+- name: retrieveRegion
+  description: "List regions"
+  method: GET
+  path: /api/v0/regions/{id}
+  public: true
+  source_operation: openapi/get-on-board-openapi-original.yml#retrieveRegion
+- name: searchJobs
+  description: "Search jobs"
+  method: GET
+  path: /api/v0/search/jobs
+  public: true
+  source_operation: openapi/get-on-board-openapi-original.yml#searchJobs
+- name: listSeniorities
+  description: "List seniorities"
+  method: GET
+  path: /api/v0/seniorities
+  public: true
+  source_operation: openapi/get-on-board-openapi-original.yml#listSeniorities
+- name: listTags
+  description: "List tags"
+  method: GET
+  path: /api/v0/tags
+  public: true
+  source_operation: openapi/get-on-board-openapi-original.yml#listTags
+- name: retrieveTag
+  description: "Get a tag"
+  method: GET
+  path: /api/v0/tags/{id}
+  public: true
+  source_operation: openapi/get-on-board-openapi-original.yml#retrieveTag
+- name: listTagJobs
+  description: "List jobs for a tag"
+  method: GET
+  path: /api/v0/tags/{tag_id}/jobs
+  public: true
+  source_operation: openapi/get-on-board-openapi-original.yml#listTagJobs
+- name: listWebhookEndpoints
+  description: "List webhook endpoints"
+  method: GET
+  path: /api/v0/webhook_endpoints
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#listWebhookEndpoints
+- name: createWebhookEndpoint
+  description: "Create a webhook endpoint"
+  method: POST
+  path: /api/v0/webhook_endpoints
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#createWebhookEndpoint
+- name: retrieveWebhookEndpoint
+  description: "Retrieve a webhook endpoint"
+  method: GET
+  path: /api/v0/webhook_endpoints/{id}
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#retrieveWebhookEndpoint
+- name: updateWebhookEndpoint
+  description: "Update a webhook endpoint"
+  method: PUT
+  path: /api/v0/webhook_endpoints/{id}
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#updateWebhookEndpoint
+- name: deleteWebhookEndpoint
+  description: "Delete a webhook endpoint"
+  method: DELETE
+  path: /api/v0/webhook_endpoints/{id}
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#deleteWebhookEndpoint
+- name: listWebhookEvents
+  description: "List webhook events"
+  method: GET
+  path: /api/v0/webhook_events
+  public: false
+  source_operation: openapi/get-on-board-openapi-original.yml#listWebhookEvents

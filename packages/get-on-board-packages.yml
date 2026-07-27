@@ -1,0 +1,15 @@
+generated: '2026-07-19'
+method: searched
+source: https://github.com/getonbrd
+packages:
+- language: ruby
+  registry: github
+  name: getonbrd-ruby
+  url: https://github.com/getonbrd/getonbrd-ruby
+  install: "gem 'getonbrd', github: 'getonbrd/getonbrd-ruby'"
+  official: true
+  published_registry: false
+  notes: >-
+    First-party Ruby client library for the Get on Board API ("Get on Board API
+    Ruby library"). Source-only on GitHub; not published to RubyGems. Wraps the
+    private Companies API resources (jobs, applications, processes, professionals).

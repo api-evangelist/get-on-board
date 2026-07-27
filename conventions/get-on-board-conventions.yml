@@ -1,0 +1,69 @@
+generated: '2026-07-19'
+method: searched
+source: https://www.getonbrd.com/doc/openapi.yaml
+docs: https://www.getonbrd.com/api-doc.html
+summary: >-
+  Cross-cutting request/response semantics for the Get on Board API v0, harvested
+  from the published OpenAPI description and derived from the spec.
+authentication:
+  style: bearer
+  header: Authorization
+  schemes:
+  - Company API key (Bearer <api_key>) for the private Companies API
+  - Professional JWT (Bearer <jwt>) refreshed via POST /api/v0/auth_tokens
+  - Board+ HMAC secret key (Bearer <board_secret_key>)
+  key_location: https://www.getonbrd.com/companies/[your-company]/api_settings
+  see: authentication/get-on-board-authentication.yml
+idempotency:
+  supported: false
+  notes: >-
+    No idempotency-key header or parameter is documented in the API or OpenAPI
+    spec. Job submission uses an explicit submit/publish moderation workflow
+    rather than idempotent retries.
+pagination:
+  style: page-number
+  params:
+    page: {type: integer, default: 1, min: 1}
+    per_page: {type: integer, default: 120, max: 120, min: 1}
+  response_fields:
+    envelope: meta
+    fields: [page, per_page, total_pages]
+  unpaginated_endpoints:
+  - GET /api/v0/perks
+  - GET /api/v0/applications/discard_reasons
+  - GET /api/v0/processes/{process_id}/phases
+field_expansion:
+  param: expand[]
+  style: array
+  nested: true
+  nested_syntax: dot-notation (e.g. expand[]=job.tags)
+  example: GET /api/v0/applications?expand[]=job&expand[]=professional
+  collapsed_default: >-
+    Related objects return only id and type unless expanded.
+localization:
+  param: lang
+  values: [en, es, pt]
+  resolution_order:
+  - lang query parameter
+  - Accept-Language header
+  - authenticated user's language preference (private API only)
+  - default locale
+  localized_fields: [category names, perk descriptions, country names, validation error messages]
+response_envelope:
+  data_key: data
+  resource_shape: '{ id, type, attributes, relationships }'
+  note: JSON:API-inspired resource objects (id/type/attributes); not strict JSON:API.
+error_envelope:
+  shape: '{ message, code }'
+  format: custom (not RFC 9457 / application/problem+json)
+  see: errors/get-on-board-problem-types.yml
+versioning:
+  scheme: uri-path
+  current: v0
+  see: lifecycle/get-on-board-lifecycle.yml
+rate_limiting:
+  documented: false
+  notes: No rate-limit headers or quotas are documented in the OpenAPI spec.
+content_types:
+  request: application/x-www-form-urlencoded
+  response: application/json

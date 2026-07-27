@@ -1,0 +1,43 @@
+generated: '2026-07-19'
+method: derived
+source: openapi/get-on-board-openapi-original.yml
+docs: https://www.getonbrd.com/api-doc.html
+format: custom
+envelope:
+  shape: '{ message: string, code: string }'
+  note: >-
+    Not RFC 9457 / application/problem+json. Errors are returned as a flat JSON
+    object with a human-readable `message` and a machine `code` string. On 422
+    validation errors, `message` may carry field-keyed arrays of messages.
+problems:
+- status: 400
+  code: bad_request
+  title: Bad request
+  example_message: 'param is missing or the value is empty or invalid: Missing refresh token parameter'
+  remediation: Provide all required parameters (e.g. refresh_token on POST /api/v0/auth_tokens).
+- status: 401
+  code: unauthorized
+  title: Unauthorized access
+  example_message: (Status 401) Unauthorized access.
+  remediation: Send a valid Authorization Bearer token (API key, JWT, or board secret).
+- status: 403
+  code: forbidden
+  title: Forbidden
+  example_message: Partner company shells are not enabled for this account
+  remediation: Contact Get on Board to enable partner (company shells) access for your integration.
+- status: 404
+  code: not_found
+  title: Record not found
+  example_message: Record not found
+  remediation: Verify the resource id/slug; a 404 on private endpoints can also mean an expired subscription.
+- status: 422
+  code: unprocessable_content
+  title: Unprocessable content
+  example_message: Invalid date formats in paremeters. Use an Epoch time format.
+  remediation: Fix the invalid/missing parameters; per-field messages are keyed under `message`.
+- status: 500
+  code: internal_server_error
+  title: Internal server error
+  example_message: Internal server error
+  remediation: Retry later; contact team@getonbrd.com if it persists.
+statuses_observed: [200, 201, 202, 400, 401, 403, 404, 422, 500, 503]

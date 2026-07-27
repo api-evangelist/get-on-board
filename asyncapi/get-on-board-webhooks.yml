@@ -1,0 +1,44 @@
+generated: '2026-07-19'
+method: searched
+source: openapi/get-on-board-openapi-original.yml
+docs: https://www.getonbrd.com/api-doc.html
+spec_type: Webhooks
+summary: >-
+  Get on Board supports outbound webhooks. Subscribers register HTTPS endpoints
+  and select event types; the platform POSTs event payloads when matching events
+  occur. Event payloads are "starting points" that identify a resource by id/type
+  — consumers are expected to follow up with a canonical read (e.g. GET
+  /api/v0/applications/{id}) and expand[] as needed. No AsyncAPI document is
+  published.
+authentication:
+  scheme: BearerAuth
+  note: Webhook management endpoints require a professional JWT (Bearer token).
+management_operations:
+- id: listWebhookEndpoints
+  method: GET
+  path: /api/v0/webhook_endpoints
+- id: createWebhookEndpoint
+  method: POST
+  path: /api/v0/webhook_endpoints
+  body: 'endpoint (https URL), events[] (array of event type ids)'
+- id: retrieveWebhookEndpoint
+  method: GET
+  path: /api/v0/webhook_endpoints/{id}
+- id: updateWebhookEndpoint
+  method: PUT
+  path: /api/v0/webhook_endpoints/{id}
+- id: deleteWebhookEndpoint
+  method: DELETE
+  path: /api/v0/webhook_endpoints/{id}
+- id: listWebhookEvents
+  method: GET
+  path: /api/v0/webhook_events
+  note: Returns the available webhook event types for the authenticated subscriber.
+events:
+- id: job.match
+  label: Job matching your preferences
+  description: A new job matching your preferences has been published.
+notes:
+- >-
+  The full event catalog is enumerable at runtime via GET /api/v0/webhook_events
+  (auth required); job.match is the example documented in the OpenAPI spec.

@@ -1,0 +1,27 @@
+generated: '2026-07-19'
+method: searched
+source: https://www.getonbrd.com/doc/openapi.yaml
+docs: https://www.getonbrd.com/api-doc.html
+summary: >-
+  Get on Board publishes a dedicated sandbox environment mirroring the production
+  API surface. The sandbox contains fake data; certain features such as payments
+  may not work. Test integrations here before making live production requests.
+environments:
+- name: production
+  base_url: https://www.getonbrd.com/api/v0/
+- name: sandbox
+  base_url: https://sandbox.getonbrd.dev/api/v0/
+  data: fake
+  verified_status: 200
+  verified_endpoint: https://sandbox.getonbrd.dev/api/v0/categories
+notes:
+- >-
+  Test/live separation is by base host (sandbox.getonbrd.dev vs www.getonbrd.com),
+  not by key prefix. The same request/response shapes apply to both.
+- >-
+  Companies wanting to trial the private API before subscribing can request
+  temporary access via info@getonbrd.com or the support chat.
+- >-
+  A read-only public smoke test is available with no authentication
+  (e.g. GET /api/v0/categories).
+test_values: []

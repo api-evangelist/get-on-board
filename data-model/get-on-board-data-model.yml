@@ -1,0 +1,68 @@
+generated: '2026-07-19'
+method: derived
+source: openapi/get-on-board-openapi-original.yml
+docs: https://www.getonbrd.com/api-doc.html
+summary: >-
+  Entity-relationship graph derived from the Get on Board OpenAPI paths, the
+  documented "Jobs -> Applications -> Processes -> Professionals" recruitment
+  workflow, and expand[] relationship names. Resource objects follow a
+  JSON:API-inspired id/type/attributes/relationships shape.
+entities:
+- name: job
+  api: private (company) + public
+  operations: [listCompanyPrivateJobs, retrieveCompanyPrivateJob, createCompanyPrivateJob, updateCompanyPrivateJob, deleteCompanyPrivateJob, searchJobs, listCategoryJobs, listCompanyJobs, listTagJobs]
+  relationships:
+  - {type: belongs_to, target: company, via: company}
+  - {type: belongs_to, target: company_shell, via: company_shell_id}
+  - {type: has_many, target: process, via: processes}
+  - {type: has_many, target: application, via: applications}
+  - {type: has_many, target: tag, via: tags}
+  - {type: belongs_to, target: category, via: category}
+- name: application
+  api: private (company)
+  operations: [listApplications, retrieveApplication, createApplication, updateApplication, moveApplicationPhase]
+  relationships:
+  - {type: belongs_to, target: job, via: job}
+  - {type: belongs_to, target: professional, via: professional}
+  - {type: belongs_to, target: process, via: process_id}
+- name: process
+  api: private (company)
+  operations: [listProcesses, retrieveProcess, listProcessPhases, listJobProcesses]
+  relationships:
+  - {type: belongs_to, target: job, via: job}
+  - {type: has_many, target: phase, via: phases}
+  - {type: has_many, target: application, via: applications}
+- name: professional
+  api: private (company)
+  operations: [listProfessionals, retrieveProfessional, retrieveBoardProfessional]
+  relationships:
+  - {type: has_many, target: application, via: applications}
+  note: Process-scoped access; requires process_id and an unlocked profile you own.
+- name: company
+  api: public
+  operations: [listCompanies, retrieveCompany, listCompanyJobs]
+  relationships:
+  - {type: has_many, target: job, via: jobs}
+  - {type: belongs_to, target: industry, via: industry}
+- name: company_shell
+  api: private (partner)
+  operations: [listCompanyShells, retrieveCompanyShell, createCompanyShell, updateCompanyShell]
+  relationships:
+  - {type: has_many, target: job, via: jobs}
+- name: webhook_endpoint
+  api: private (professional)
+  operations: [listWebhookEndpoints, retrieveWebhookEndpoint, createWebhookEndpoint, updateWebhookEndpoint, deleteWebhookEndpoint]
+  relationships:
+  - {type: has_many, target: webhook_event, via: events}
+reference_entities:
+- {name: category, operations: [listCategories, listCategoryJobs]}
+- {name: tag, operations: [listTags, retrieveTag, listTagJobs]}
+- {name: country, operations: [listCountries]}
+- {name: region, operations: [listRegions, retrieveRegion]}
+- {name: tenant_city, operations: [listTenantCities]}
+- {name: perk, operations: [listPerks]}
+- {name: modality, operations: [listModalities]}
+- {name: seniority, operations: [listSeniorities]}
+- {name: headcount, operations: [listHeadcounts]}
+- {name: industry, operations: [listIndustries]}
+- {name: insight, operations: [retrieveInsight]}

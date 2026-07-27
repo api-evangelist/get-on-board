@@ -1,0 +1,8 @@
+# Get on Board
+
+> Tech recruitment platform and ATS for Latin America. Companies post jobs, manage recruitment processes, and access a talent database of 1M+ professionals.
+
+## API
+
+- [API Reference](https://www.getonbrd.com/api-doc.html): Interactive documentation for the Get on Board REST API (public and private endpoints).
+- [OpenAPI Spec](https://www.getonbrd.com/doc/openapi.yaml): Machine-readable OpenAPI 3.1 specification (YAML).

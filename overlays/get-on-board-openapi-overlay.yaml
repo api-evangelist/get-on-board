@@ -1,0 +1,23 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enhancements for Get on Board API
+  version: 1.0.0
+extends: openapi/get-on-board-openapi-original.yml
+actions:
+- target: $.info
+  update:
+    x-apievangelist-enriched: '2026-07-19'
+    x-apievangelist-facets:
+      auth: authentication/get-on-board-authentication.yml
+      conventions: conventions/get-on-board-conventions.yml
+      errors: errors/get-on-board-problem-types.yml
+      webhooks: asyncapi/get-on-board-webhooks.yml
+      sandbox: sandbox/get-on-board-sandbox.yml
+      data_model: data-model/get-on-board-data-model.yml
+- target: $.info
+  update:
+    x-api-category: recruitment
+    x-api-region: latin-america
+    x-error-format: 'custom { message, code } (not RFC 9457)'
+    x-idempotency: not-supported
+    x-sandbox: https://sandbox.getonbrd.dev/api/v0/
