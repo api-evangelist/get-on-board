@@ -367,6 +367,8 @@ maintainers:
 - FN: APIs.json
   email: info@apis.io
 common:
+- type: Overlay
+  url: overlays/get-on-board-openapi-overlay.yaml
 - type: Website
   url: https://getonbrd.com
 - type: Documentation
