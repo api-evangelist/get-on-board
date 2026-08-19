@@ -1,0 +1,92 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Get on Board Applications Professionals API",
+    "version": "0.1.0"
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Professionals",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List professionals",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://www.getonbrd.com/api/v0/professionals",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer YOUR_API_KEY"
+              }
+            ],
+            "params": [
+              {
+                "name": "page",
+                "value": "2",
+                "type": "query",
+                "description": "Page number, starting at 1."
+              },
+              {
+                "name": "per_page",
+                "value": "1",
+                "type": "query",
+                "description": "Number of records per page. The default and maximum are usually 120 unless an endpoint documents a different behavior."
+              },
+              {
+                "name": "process_id",
+                "value": "151",
+                "type": "query"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "token": "{{bearerToken}}"
+            }
+          },
+          "docs": "List professionals"
+        },
+        {
+          "info": {
+            "name": "Retrieve a professional",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://www.getonbrd.com/api/v0/professionals/:id",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer YOUR_API_KEY"
+              }
+            ],
+            "params": [
+              {
+                "name": "id",
+                "value": "1",
+                "type": "path",
+                "description": "Professional ID from `GET /api/v0/professionals?process_id=...`."
+              },
+              {
+                "name": "process_id",
+                "value": "142",
+                "type": "query"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "token": "{{bearerToken}}"
+            }
+          },
+          "docs": "Retrieve a professional"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

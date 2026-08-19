@@ -1,0 +1,234 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Get on Board Applications API",
+    "version": "0.1.0"
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Applications",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List applications",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://www.getonbrd.com/api/v0/applications",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer YOUR_API_KEY"
+              }
+            ],
+            "params": [
+              {
+                "name": "expand",
+                "value": "professional",
+                "type": "query"
+              },
+              {
+                "name": "from",
+                "value": "1783958223",
+                "type": "query",
+                "description": "Start of the date range as a Unix epoch timestamp."
+              },
+              {
+                "name": "page",
+                "value": "2",
+                "type": "query",
+                "description": "Page number, starting at 1."
+              },
+              {
+                "name": "per_page",
+                "value": "2",
+                "type": "query",
+                "description": "Number of records per page. The default and maximum are usually 120 unless an endpoint documents a different behavior."
+              },
+              {
+                "name": "process_id",
+                "value": "317",
+                "type": "query"
+              },
+              {
+                "name": "to",
+                "value": "1783958221",
+                "type": "query",
+                "description": "End of the date range as a Unix epoch timestamp."
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "token": "{{bearerToken}}"
+            }
+          },
+          "docs": "Filter by `process_id` when preparing a phase move. Use each returned application `id` with `PATCH /api/v0/applications/{application_id}/phase`."
+        },
+        {
+          "info": {
+            "name": "Create an application",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://www.getonbrd.com/api/v0/applications",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer YOUR_API_KEY"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "bearer",
+              "token": "{{bearerToken}}"
+            }
+          },
+          "docs": "Create an application"
+        },
+        {
+          "info": {
+            "name": "List application discard reasons",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://www.getonbrd.com/api/v0/applications/discard_reasons",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer YOUR_API_KEY"
+              }
+            ],
+            "params": [
+              {
+                "name": "lang",
+                "value": "pt",
+                "type": "query",
+                "description": "Response locale. Supported values are `en`, `es`, and `pt`."
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "token": "{{bearerToken}}"
+            }
+          },
+          "docs": "Use a returned reason `id` as `discard_reason` when moving an application to a phase whose `kind` is `discarded`."
+        },
+        {
+          "info": {
+            "name": "Move an application to another phase",
+            "type": "http"
+          },
+          "http": {
+            "method": "PATCH",
+            "url": "https://www.getonbrd.com/api/v0/applications/:application_id/phase",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer YOUR_API_KEY"
+              }
+            ],
+            "params": [
+              {
+                "name": "application_id",
+                "value": "36",
+                "type": "path",
+                "description": "Application ID from `GET /api/v0/applications`."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "bearer",
+              "token": "{{bearerToken}}"
+            }
+          },
+          "docs": "Discover phase IDs with `GET /api/v0/processes/{process_id}/phases`. For phases with `kind: \"discarded\"`, discover valid `discard_reason` values with `GET /api/v0/applications/discard_reasons` and send one returned `id`. Moving back to a non-discarded phase clears the stored discard reason."
+        },
+        {
+          "info": {
+            "name": "Create an application",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://www.getonbrd.com/api/v0/applications/:id",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer YOUR_API_KEY"
+              }
+            ],
+            "params": [
+              {
+                "name": "expand",
+                "value": "professional",
+                "type": "query"
+              },
+              {
+                "name": "id",
+                "value": "1",
+                "type": "path",
+                "description": "Application ID from `GET /api/v0/applications`."
+              },
+              {
+                "name": "process_id",
+                "value": "330",
+                "type": "query"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "token": "{{bearerToken}}"
+            }
+          },
+          "docs": "Create an application"
+        },
+        {
+          "info": {
+            "name": "Update an application",
+            "type": "http"
+          },
+          "http": {
+            "method": "PUT",
+            "url": "https://www.getonbrd.com/api/v0/applications/:id",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer YOUR_API_KEY"
+              }
+            ],
+            "params": [
+              {
+                "name": "id",
+                "value": "1",
+                "type": "path",
+                "description": "Application ID from `GET /api/v0/applications`."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "bearer",
+              "token": "{{bearerToken}}"
+            }
+          },
+          "docs": "Update an application"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

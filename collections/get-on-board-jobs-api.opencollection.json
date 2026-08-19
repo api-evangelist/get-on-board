@@ -1,0 +1,348 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Get on Board Applications Jobs API",
+    "version": "0.1.0"
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Jobs",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List company jobs",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://www.getonbrd.com/api/v0/jobs",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer YOUR_API_KEY"
+              }
+            ],
+            "params": [
+              {
+                "name": "page",
+                "value": "1",
+                "type": "query",
+                "description": "Page number, starting at 1."
+              },
+              {
+                "name": "per_page",
+                "value": "2",
+                "type": "query",
+                "description": "Number of records per page. The default and maximum are usually 120 unless an endpoint documents a different behavior."
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "token": "{{bearerToken}}"
+            }
+          },
+          "docs": "To manage candidate phase moves, choose a job from this response and call `GET /api/v0/jobs/{job_id}/processes` with the returned job identifier."
+        },
+        {
+          "info": {
+            "name": "Create a job",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://www.getonbrd.com/api/v0/jobs",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer YOUR_API_KEY"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "bearer",
+              "token": "{{bearerToken}}"
+            }
+          },
+          "docs": "### Remote modality and locations\n\n`remote_modality` controls which location fields the Jobs API reads:\n\n- `fully_remote`: do not send location fields. Regions, countries, and cities are cleared.\n- `remote_local`: send `location_region_ids` and/or `location_country_ids` as slugs from `GET /api/v0/regions` and `GET /api/v0/countries`.\n- `no_remote`, `hybrid`, `temporarily_remote`: send `location_city_ids` as numeric city IDs from `GET /api/v0/cities`.\n\nUnknown or wrong identifier types resolve to"
+        },
+        {
+          "info": {
+            "name": "Retrieve a job",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://www.getonbrd.com/api/v0/jobs/:id",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer YOUR_API_KEY"
+              }
+            ],
+            "params": [
+              {
+                "name": "expand",
+                "value": "questions",
+                "type": "query"
+              },
+              {
+                "name": "id",
+                "value": "javascript-ninja-user-120-santiago-b95f",
+                "type": "path",
+                "description": "Job slug from `GET /api/v0/jobs`."
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "token": "{{bearerToken}}"
+            }
+          },
+          "docs": "Retrieve a job"
+        },
+        {
+          "info": {
+            "name": "Update a job",
+            "type": "http"
+          },
+          "http": {
+            "method": "PUT",
+            "url": "https://www.getonbrd.com/api/v0/jobs/:id",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer YOUR_API_KEY"
+              }
+            ],
+            "params": [
+              {
+                "name": "id",
+                "value": "javascript-ninja-user-144-santiago",
+                "type": "path",
+                "description": "Job slug from `GET /api/v0/jobs`."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "bearer",
+              "token": "{{bearerToken}}"
+            }
+          },
+          "docs": "### Remote modality and locations\n\n`remote_modality` controls which location fields the Jobs API reads:\n\n- `fully_remote`: do not send location fields. Regions, countries, and cities are cleared.\n- `remote_local`: send `location_region_ids` and/or `location_country_ids` as slugs from `GET /api/v0/regions` and `GET /api/v0/countries`.\n- `no_remote`, `hybrid`, `temporarily_remote`: send `location_city_ids` as numeric city IDs from `GET /api/v0/cities`.\n\nUnknown or wrong identifier types resolve to"
+        },
+        {
+          "info": {
+            "name": "Delete a job",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://www.getonbrd.com/api/v0/jobs/:id",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer YOUR_API_KEY"
+              }
+            ],
+            "params": [
+              {
+                "name": "id",
+                "value": "javascript-ninja-user-124-santiago",
+                "type": "path",
+                "description": "Job slug from `GET /api/v0/jobs`."
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "token": "{{bearerToken}}"
+            }
+          },
+          "docs": "Delete a job"
+        },
+        {
+          "info": {
+            "name": "List job processes",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://www.getonbrd.com/api/v0/jobs/:job_id/processes",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer YOUR_API_KEY"
+              }
+            ],
+            "params": [
+              {
+                "name": "active",
+                "value": "true",
+                "type": "query"
+              },
+              {
+                "name": "from",
+                "value": "1783958184",
+                "type": "query",
+                "description": "Start of the date range as a Unix epoch timestamp."
+              },
+              {
+                "name": "job_id",
+                "value": "javascript-ninja-user-169-santiago",
+                "type": "path",
+                "description": "Job slug or identifier from `GET /api/v0/jobs`."
+              },
+              {
+                "name": "per_page",
+                "value": "1",
+                "type": "query",
+                "description": "Number of records per page. The default and maximum are usually 120 unless an endpoint documents a different behavior."
+              },
+              {
+                "name": "to",
+                "value": "1784130984",
+                "type": "query",
+                "description": "End of the date range as a Unix epoch timestamp."
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "token": "{{bearerToken}}"
+            }
+          },
+          "docs": "Use a returned process `id` with `GET /api/v0/processes/{process_id}/phases` to discover target phases, and with `GET /api/v0/applications?process_id={process_id}` to list applications in that pipeline."
+        },
+        {
+          "info": {
+            "name": "Republish a job",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://www.getonbrd.com/api/v0/jobs/:job_id/publish",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer YOUR_API_KEY"
+              }
+            ],
+            "params": [
+              {
+                "name": "job_id",
+                "value": "javascript-ninja-user-279-santiago",
+                "type": "path",
+                "description": "Job slug or identifier from `GET /api/v0/jobs`."
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "token": "{{bearerToken}}"
+            }
+          },
+          "docs": "Use this only for jobs your company owns that are currently unpublished. It restores publication without creating a new job."
+        },
+        {
+          "info": {
+            "name": "Delete a job question",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://www.getonbrd.com/api/v0/jobs/:job_id/questions/:id",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer YOUR_API_KEY"
+              }
+            ],
+            "params": [
+              {
+                "name": "id",
+                "value": "20",
+                "type": "path",
+                "description": "Screening question ID or slug."
+              },
+              {
+                "name": "job_id",
+                "value": "javascript-ninja-user-108-santiago",
+                "type": "path",
+                "description": "Job slug or identifier from `GET /api/v0/jobs`."
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "token": "{{bearerToken}}"
+            }
+          },
+          "docs": "Delete a job question"
+        },
+        {
+          "info": {
+            "name": "Submit a job",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://www.getonbrd.com/api/v0/jobs/:job_id/submit",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer YOUR_API_KEY"
+              }
+            ],
+            "params": [
+              {
+                "name": "job_id",
+                "value": "javascript-ninja-user-176-santiago",
+                "type": "path",
+                "description": "Job slug or identifier from `GET /api/v0/jobs`."
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "token": "{{bearerToken}}"
+            }
+          },
+          "docs": "Submit a draft or rejected job for moderation. A rejected job can also return to moderation when updated through `PUT /api/v0/jobs/{id}`."
+        },
+        {
+          "info": {
+            "name": "Unpublish a job",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://www.getonbrd.com/api/v0/jobs/:job_id/unpublish",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer YOUR_API_KEY"
+              }
+            ],
+            "params": [
+              {
+                "name": "job_id",
+                "value": "javascript-ninja-user-286-santiago",
+                "type": "path",
+                "description": "Job slug or identifier from `GET /api/v0/jobs`."
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "token": "{{bearerToken}}"
+            }
+          },
+          "docs": "Use this for owned live jobs that should stop appearing publicly while staying available for later republishing."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

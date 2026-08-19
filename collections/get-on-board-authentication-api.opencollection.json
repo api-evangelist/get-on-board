@@ -1,0 +1,42 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Get on Board Applications Authentication API",
+    "version": "0.1.0"
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Authentication",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Refresh auth token",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://www.getonbrd.com/api/v0/auth_tokens",
+            "body": {
+              "type": "form-urlencoded",
+              "data": [
+                {
+                  "name": "refresh_token",
+                  "value": ""
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "token": "{{bearerToken}}"
+            }
+          },
+          "docs": "Send a valid `refresh_token` to receive a new short-lived JWT `token`. Keep using the same `refresh_token` until it expires."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

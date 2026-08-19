@@ -1,0 +1,103 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Get on Board Applications Board+ API",
+    "version": "0.1.0"
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Board+",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Retrieve a board professional",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://www.getonbrd.com/api/v0/board/professionals",
+            "params": [
+              {
+                "name": "email",
+                "value": "webpro9@example.com",
+                "type": "query"
+              },
+              {
+                "name": "secret_key",
+                "value": "0K6i4FlWDnaPh1zEnxqWnA5wIEL9uVucSDy4aV1UNIxD",
+                "type": "query"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "token": "{{bearerToken}}"
+            }
+          },
+          "docs": "Board+ whitelist flow: check one professional by `email`, use `POST /api/v0/board/professionals` to enqueue whitelisting for one or more emails, and use `DELETE /api/v0/board/professionals` to enqueue removal."
+        },
+        {
+          "info": {
+            "name": "Whitelist board professionals",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://www.getonbrd.com/api/v0/board/professionals",
+            "params": [
+              {
+                "name": "emails",
+                "value": "webpro12@example.com,pending.webpro@outlook.com",
+                "type": "query"
+              },
+              {
+                "name": "secret_key",
+                "value": "z0cHmSMeNkbur7EZkFLanQmWnkPT7Jg4LlOD7TnuKUwF",
+                "type": "query"
+              }
+            ],
+            "body": {
+              "type": "form-urlencoded",
+              "data": []
+            },
+            "auth": {
+              "type": "bearer",
+              "token": "{{bearerToken}}"
+            }
+          },
+          "docs": "Whitelist board professionals"
+        },
+        {
+          "info": {
+            "name": "Remove board professionals",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://www.getonbrd.com/api/v0/board/professionals",
+            "params": [
+              {
+                "name": "emails",
+                "value": "webpro5@example.com,pending.webpro@outlook.com",
+                "type": "query"
+              },
+              {
+                "name": "secret_key",
+                "value": "invalid_token",
+                "type": "query"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "token": "{{bearerToken}}"
+            }
+          },
+          "docs": "Remove board professionals"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

@@ -1,0 +1,39 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Get on Board Applications Matching API",
+    "version": "0.1.0"
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Matching",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List matching jobs",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://www.getonbrd.com/api/v0/matching_jobs",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer YOUR_JWT_TOKEN"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "token": "{{bearerToken}}"
+            }
+          },
+          "docs": "List matching jobs"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

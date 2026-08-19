@@ -1,0 +1,1143 @@
+{
+  "item": [
+    {
+      "id": "5ee7c0f5-0125-4855-b302-e1f66d0bc9e6",
+      "name": "Webhooks",
+      "description": {
+        "content": "Webhook endpoints and events",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "5e145362-4144-456a-a0e4-347d3215c1e7",
+          "name": "List webhook endpoints",
+          "request": {
+            "name": "List webhook endpoints",
+            "description": {},
+            "url": {
+              "path": [
+                "api",
+                "v0",
+                "webhook_endpoints"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "3cc11d67-6b8c-4a5a-ba37-4a61db44d467",
+              "name": "Returns all webhook endpoints for the authenticated subscriber.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "webhook_endpoints"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "(Required) Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_JWT_TOKEN"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": \"1\",\n      \"type\": \"webhook_endpoint\",\n      \"attributes\": {\n        \"endpoint\": \"https://hooks.example.com/b\",\n        \"state\": \"active\",\n        \"events\": [\n          \"job.match\"\n        ]\n      }\n    },\n    {\n      \"id\": \"1\",\n      \"type\": \"webhook_endpoint\",\n      \"attributes\": {\n        \"endpoint\": \"https://hooks.example.com/a\",\n        \"state\": \"active\",\n        \"events\": [\n          \"job.match\"\n        ]\n      }\n    }\n  ]\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "929e8b5e-1235-4825-ab0f-146dd968741c",
+              "name": "Returns all webhook endpoints for the authenticated subscriber.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "webhook_endpoints"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "(Required) Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_JWT_TOKEN"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"(Status 401) Unauthorized access.\",\n  \"code\": \"unauthorized\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "64693179-f20f-423f-812f-b39f0778fa76",
+          "name": "Create a webhook endpoint",
+          "request": {
+            "name": "Create a webhook endpoint",
+            "description": {
+              "content": "Webhook setup flow: list valid events with `GET /api/v0/webhook_events`, create an endpoint with an HTTPS `endpoint` URL and selected `events`, then use `GET /api/v0/webhook_endpoints` to confirm the saved subscription.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "v0",
+                "webhook_endpoints"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "disabled": false,
+                  "key": "endpoint",
+                  "value": "<string>",
+                  "description": "(Required) "
+                },
+                {
+                  "disabled": false,
+                  "key": "events",
+                  "value": "<string>",
+                  "description": "(Required) "
+                },
+                {
+                  "disabled": false,
+                  "key": "events",
+                  "value": "<string>",
+                  "description": "(Required) "
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "cf8f604a-1b7a-463f-bba1-b4650c4b3fab",
+              "name": "Creates a new webhook endpoint with the specified events.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "webhook_endpoints"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "(Required) Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_JWT_TOKEN"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) ",
+                        "type": "text/plain"
+                      },
+                      "key": "endpoint",
+                      "value": "https://hooks.example.com/a"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) ",
+                        "type": "text/plain"
+                      },
+                      "key": "events",
+                      "value": "job.match"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) ",
+                        "type": "text/plain"
+                      },
+                      "key": "events",
+                      "value": "job.match"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": {\n    \"id\": \"7032348ebd4ec817921d4bf3ef130499\",\n    \"type\": \"webhook_endpoint\",\n    \"attributes\": {\n      \"endpoint\": \"https://hooks.example.com/a\",\n      \"state\": \"active\",\n      \"events\": [\n        \"job.match\"\n      ]\n    }\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "6ef7e45a-a108-42af-8fe0-76c396c09f04",
+              "name": "Creates a new webhook endpoint with the specified events.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "webhook_endpoints"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "(Required) Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_JWT_TOKEN"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) ",
+                        "type": "text/plain"
+                      },
+                      "key": "endpoint",
+                      "value": "https://hooks.example.com/a"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) ",
+                        "type": "text/plain"
+                      },
+                      "key": "events",
+                      "value": "job.match"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) ",
+                        "type": "text/plain"
+                      },
+                      "key": "events",
+                      "value": "job.match"
+                    }
+                  ]
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": {\n    \"events\": [\n      \"Contains one or more events that are not allowed.\"\n    ]\n  },\n  \"code\": \"unprocessable_content\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "f539eef9-aee8-426a-950d-448c9f17c4fe",
+          "name": "Delete a webhook endpoint",
+          "request": {
+            "name": "Delete a webhook endpoint",
+            "description": {},
+            "url": {
+              "path": [
+                "api",
+                "v0",
+                "webhook_endpoints",
+                ":id"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "id",
+                  "description": "(Required) Webhook endpoint slug from `GET /api/v0/webhook_endpoints`."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "DELETE",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "bb9622e5-5277-411e-b41b-96ed3ed31163",
+              "name": "Deletes an existing webhook endpoint by its slug.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "webhook_endpoints",
+                    ":id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "id",
+                      "description": "(Required) Webhook endpoint slug from `GET /api/v0/webhook_endpoints`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "(Required) Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_JWT_TOKEN"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": \"ok\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "71032d19-40bb-42fb-9d36-4dd05c9f6e89",
+              "name": "Deletes an existing webhook endpoint by its slug.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "webhook_endpoints",
+                    ":id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "id",
+                      "description": "(Required) Webhook endpoint slug from `GET /api/v0/webhook_endpoints`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "(Required) Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_JWT_TOKEN"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Record not found\",\n  \"code\": \"not_found\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "e96bf0fa-3957-4f88-be1b-90b294987891",
+          "name": "Retrieve a webhook endpoint",
+          "request": {
+            "name": "Retrieve a webhook endpoint",
+            "description": {},
+            "url": {
+              "path": [
+                "api",
+                "v0",
+                "webhook_endpoints",
+                ":id"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "id",
+                  "description": "(Required) Webhook endpoint slug from `GET /api/v0/webhook_endpoints`."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "7997cc4a-7efb-4b78-a6b7-a2f6f8d11f76",
+              "name": "Returns the details of a specific webhook endpoint by its slug.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "webhook_endpoints",
+                    ":id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "id",
+                      "description": "(Required) Webhook endpoint slug from `GET /api/v0/webhook_endpoints`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "(Required) Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_JWT_TOKEN"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": {\n    \"id\": \"9c4e1d2c4f84eab38a650f94b2dec2a8\",\n    \"type\": \"webhook_endpoint\",\n    \"attributes\": {\n      \"endpoint\": \"https://hooks.example.com/owned\",\n      \"state\": \"active\",\n      \"events\": [\n        \"job.match\"\n      ]\n    }\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "cbe7e7f8-ea0c-46dc-84e3-540027b5cd97",
+              "name": "Returns the details of a specific webhook endpoint by its slug.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "webhook_endpoints",
+                    ":id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "id",
+                      "description": "(Required) Webhook endpoint slug from `GET /api/v0/webhook_endpoints`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "(Required) Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_JWT_TOKEN"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Record not found\",\n  \"code\": \"not_found\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "1e7187c4-edfb-4bc9-a157-d28c49cff978",
+          "name": "Update a webhook endpoint",
+          "request": {
+            "name": "Update a webhook endpoint",
+            "description": {},
+            "url": {
+              "path": [
+                "api",
+                "v0",
+                "webhook_endpoints",
+                ":id"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "id",
+                  "description": "(Required) Webhook endpoint slug from `GET /api/v0/webhook_endpoints`."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "disabled": false,
+                  "key": "endpoint",
+                  "value": "<string>",
+                  "description": "(Required) "
+                },
+                {
+                  "disabled": false,
+                  "key": "events",
+                  "value": "<string>",
+                  "description": "(Required) "
+                },
+                {
+                  "disabled": false,
+                  "key": "events",
+                  "value": "<string>",
+                  "description": "(Required) "
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "53d13e44-6850-4578-b7e8-5580d419ab7a",
+              "name": "Updates an existing webhook endpoint's events or configuration.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "webhook_endpoints",
+                    ":id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "id",
+                      "description": "(Required) Webhook endpoint slug from `GET /api/v0/webhook_endpoints`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "(Required) Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_JWT_TOKEN"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "PUT",
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) ",
+                        "type": "text/plain"
+                      },
+                      "key": "endpoint",
+                      "value": "https://hooks.example.com/updated"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) ",
+                        "type": "text/plain"
+                      },
+                      "key": "events",
+                      "value": "job.match"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": {\n    \"id\": \"44bdd0c04e3a7cf0379403ba037fb14f\",\n    \"type\": \"webhook_endpoint\",\n    \"attributes\": {\n      \"endpoint\": \"https://hooks.example.com/updated\",\n      \"state\": \"active\",\n      \"events\": [\n        \"job.match\"\n      ]\n    }\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "1bfed147-cb51-4b30-b85b-c8900de6c50a",
+              "name": "Updates an existing webhook endpoint's events or configuration.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "webhook_endpoints",
+                    ":id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "id",
+                      "description": "(Required) Webhook endpoint slug from `GET /api/v0/webhook_endpoints`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "(Required) Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_JWT_TOKEN"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "PUT",
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) ",
+                        "type": "text/plain"
+                      },
+                      "key": "endpoint",
+                      "value": "https://hooks.example.com/updated"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) ",
+                        "type": "text/plain"
+                      },
+                      "key": "events",
+                      "value": "job.match"
+                    }
+                  ]
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": {\n    \"events\": [\n      \"Contains one or more events that are not allowed.\"\n    ]\n  },\n  \"code\": \"unprocessable_content\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "11bda0ff-f8c4-4b04-8fb4-a39be780832c",
+          "name": "List webhook events",
+          "request": {
+            "name": "List webhook events",
+            "description": {
+              "content": "Call this before creating or updating webhook endpoints. Send only event IDs returned by this endpoint in the `events` array.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "v0",
+                "webhook_events"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "d4a4ac2e-443d-461d-bf4d-fc0147dd3e29",
+              "name": "Returns the available webhook event types for the authenticated subscriber.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "webhook_events"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "(Required) Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_JWT_TOKEN"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": \"1\",\n      \"type\": \"webhook_event\",\n      \"attributes\": {\n        \"label\": \"Job matching your preferences\",\n        \"description\": \"A new job matching your preferences has been published\"\n      }\n    }\n  ]\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "567f9398-91a0-491d-a849-1a881970ee35",
+              "name": "Returns the available webhook event types for the authenticated subscriber.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "webhook_events"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "(Required) Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_JWT_TOKEN"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"(Status 401) Unauthorized access to webhooks events\",\n  \"code\": \"unauthorized\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://www.getonbrd.com",
+      "key": "baseUrl"
+    }
+  ],
+  "info": {
+    "_postman_id": "2c23ca66-4275-47af-b5e5-f4b8c4f185f8",
+    "name": "Get on Board Applications Webhooks API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "The Get on Board API provides access to the data inside Get on Board, the leading recruitment platform for tech professionals in Latin America.\n\nThere are two facets of the API:\n\n- **Public API** — Open to anyone. Access the same data visible on the platform without logging in: job categories, company profiles, published jobs, and a job search endpoint. No authentication required.\n- **Private API** — Requires authentication. Access your company's private data: jobs, recruitment processes, professionals, and applications. Available to companies with an active subscription plan that includes API access.\n\nBase URL: `https://www.getonbrd.com/api/v0/`\n\nFor bugs, improvement suggestions, or missing features, contact us at team@getonbrd.com.\n\n## Sandbox environment\n\nYou can test any endpoint using the sandbox environment:\n\n```\nhttps://sandbox.getonbrd.dev/api/v0/\n```\n\nWe strongly encourage you to test your API integrations against the sandbox before making live requests in production. The sandbox contains fake data, and certain features like payments may not work.\n\nIf your company wants to test the private API before subscribing, contact us at info@getonbrd.com or via the support chat to discuss temporary access.\n\n## Expanding responses\n\nMany endpoints support the `expand` query parameter to include full related resources instead of ID-only references.\n\n**Default (collapsed)** — Related objects return only `id` and `type`:\n\n```json\n{\n  \"job\": {\n    \"data\": { \"id\": 285, \"type\": \"job\" }\n  }\n}\n```\n\n**Expanded** — Pass `expand[]` to get the full resource with all attributes:\n\n```\nGET /api/v0/applications?expand[]=job&expand[]=professional\n```\n\nYou can expand multiple relationships in a single request. Nested expansion is supported with dot notation (e.g., `expand[]=job.tags`).\n\nSupported expand values vary by endpoint — refer to each endpoint's parameter documentation for available options.\n\n## Pagination and metadata\n\nMost list endpoints return paginated results with a `data` array and a `meta` object:\n\n```json\n{\n  \"data\": [ ... ],\n  \"meta\": {\n    \"page\": 1,\n    \"per_page\": 120,\n    \"total_pages\": 3\n  }\n}\n```\n\n| Parameter  | Type    | Default | Max | Description             |\n|------------|---------|---------|-----|-------------------------|\n| `page`     | integer | 1       | —   | Page number (min 1)     |\n| `per_page` | integer | 120     | 120 | Items per page (min 1)  |\n\nSome collection endpoints intentionally omit pagination metadata because they return bounded reference data or workflow state:\n\n- `GET /api/v0/perks`\n- `GET /api/v0/applications/discard_reasons`\n- `GET /api/v0/processes/{process_id}/phases`\n- `GET /api/v0/webhook_endpoints`\n- `GET /api/v0/webhook_events`\n- `GET /api/v0/matching_jobs` currently ignores `per_page` and omits pagination metadata.\n\n## Date filtering\n\nSome private endpoints support date range filtering using Unix epoch timestamps:\n\n| Parameter | Type    | Description                       |\n|-----------|---------|-----------------------------------|\n| `from`    | integer | Start date (epoch timestamp)      |\n| `to`      | integer | End date (epoch timestamp)        |\n\nInvalid date formats return a `422` error.\n\n## Localization\n\nAPI responses can be localized by setting a language preference. Supported locales: `en` (English), `es` (Spanish), `pt` (Portuguese).\n\n| Parameter | Type   | Description                     |\n|-----------|--------|---------------------------------|\n| `lang`    | string | Locale code: `en`, `es`, or `pt` |\n\nLanguage is resolved in this order:\n\n1. `lang` query parameter (e.g., `?lang=es`)\n2. `Accept-Language` HTTP header\n3. Authenticated user's language preference (private API only)\n4. Default locale\n\nLocalized fields include category names, perk descriptions, country names, and validation error messages. Use `?lang=en` to force English responses.\n\n## Companies Private API\n\nCollection of protected resources and endpoints a subscribed company has access to. Every request needs to be authenticated.\n\n> **Note:** Only companies with an active subscription plan can have access to the private API. The Companies Private API endpoints will return `404` if a subscription expires.\n\n### Authentication\n\nAuthenticate requests by sending the company API key in the `Authorization` header as `Bearer <api_key>`.\n\nThe key can be found in the company's profile page in Get on Board. Look for the section **API access** (`https://www.getonbrd.com/companies/[your-company]/api_settings`).\n\n### How the endpoints work together\n\nThe Companies Private API provides four interconnected endpoints that represent your complete recruitment workflow:\n\n**Jobs** (create postings) → **Applications** (receive candidates) → **Processes** (manage hiring) → **Professionals** (access profiles)\n\n### Core relationships\n\n- **Jobs**: Your job postings. The starting point that attracts candidates.\n- **Applications**: Generated when professionals apply to your jobs.\n- **Processes**: Structured hiring pipelines with phases (screening, interviews, etc.) that organize your recruitment workflow. A job can have multiple processes.\n- **Professionals**: Candidate profiles with detailed information.\n\n### Moving applications between phases\n\nTo move a candidate through your hiring pipeline:\n\n1. List your jobs with `GET /api/v0/jobs`.\n2. Pick a job and list its processes with `GET /api/v0/jobs/{job_id}/processes`. Use the job `id` string returned by `GET /api/v0/jobs`; this is normally a slug, not the numeric relationship ID embedded inside expanded process/job payloads.\n3. List applications for the process with `GET /api/v0/applications?process_id={process_id}`.\n4. Discover available target phases with `GET /api/v0/processes/{process_id}/phases`.\n5. If the target phase has `kind: \"discarded\"`, fetch valid reasons with `GET /api/v0/applications/discard_reasons`.\n6. Move the application with `PATCH /api/v0/applications/{application_id}/phase`.\n\nPhase IDs are numeric. Use a reason `id` from `GET /api/v0/applications/discard_reasons` as `discard_reason` when moving to a discarded phase. Moving an application back to a non-discarded phase clears its stored discard reason.\n\n### Multi-brand posting for ATS partners (company shells)\n\nRecruiting for many client companies through one integration? Authorized partner accounts can create\n**company shells** — public brand profiles (name, logo, description, own company page) for each client —\nand post jobs under those brands with a single API key:\n\n1. Create a shell with `POST /api/v0/company_shells` (a logo is required).\n2. Pass the shell's slug as `company_shell_id` on `POST /api/v0/jobs` or `PUT /api/v0/jobs/{id}`.\n3. The public job page, company profile, feeds, and public API show the client's brand; applications,\n   processes, and billing stay on your partner account.\n\nShell endpoints return `403` for non-partner API keys. Contact Get on Board to enable partner access\nfor your integration.\n\n### Key business rules\n\n- **Professional data access**: The Professionals endpoint has the strictest access controls. You can only access professional profiles when the professional is part of an active hiring process, the professional profile has been \"unlocked\", and you own the hiring process.\n- **Professionals are process-scoped**: Always include `process_id` when listing or retrieving professionals, for example `GET /api/v0/professionals?process_id=123` or `GET /api/v0/professionals/{id}?process_id=123`.\n- **Event payloads are starting points**: Webhook payloads and collapsed relationships identify resources, but some related endpoints still require additional scope such as `process_id`.\n- **Prefer canonical follow-up reads**: When starting from an event or collapsed payload, fetch the resource named by the payload first (for example `GET /api/v0/applications/{application_id}`), then use `expand[]` or process-scoped endpoints as needed.\n- **Data scoping**: All endpoints only return data belonging to your company (jobs you created, applications to your jobs, your hiring processes).\n- **Job moderation**: Jobs must be submitted via `POST /jobs/:id/submit` and approved before going live on the platform.\n- **Expandable relationships**: Use `expand[]=applications`, `expand[]=processes`, etc. to include related data and reduce API calls.\n\n### Read-only smoke test\n\nThe following sequence exercises the public API and the private company workflow without creating, updating, or deleting data:\n\n```bash\ncurl \"https://www.getonbrd.com/api/v0/categories?per_page=3&lang=en\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/jobs?per_page=3&lang=en\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/jobs/JOB_ID_FROM_LIST/processes\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/applications?process_id=PROCESS_ID&expand[]=job&expand[]=professional\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/applications/APPLICATION_ID?expand[]=professional\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/processes/PROCESS_ID/phases\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/professionals?process_id=PROCESS_ID&per_page=2\"\n```",
+      "type": "text/plain"
+    }
+  }
+}

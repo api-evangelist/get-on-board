@@ -1,0 +1,126 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Get on Board Applications Company shells API",
+    "version": "0.1.0"
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Company shells",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List company shells",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://www.getonbrd.com/api/v0/company_shells",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer YOUR_API_KEY"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "token": "{{bearerToken}}"
+            }
+          },
+          "docs": "List company shells"
+        },
+        {
+          "info": {
+            "name": "List company shells",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://www.getonbrd.com/api/v0/company_shells",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer YOUR_API_KEY"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "bearer",
+              "token": "{{bearerToken}}"
+            }
+          },
+          "docs": "List company shells"
+        },
+        {
+          "info": {
+            "name": "List company shells",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://www.getonbrd.com/api/v0/company_shells/:id",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer YOUR_API_KEY"
+              }
+            ],
+            "params": [
+              {
+                "name": "id",
+                "value": "client-beta",
+                "type": "path",
+                "description": "Company shell slug from `GET /api/v0/company_shells`."
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "token": "{{bearerToken}}"
+            }
+          },
+          "docs": "List company shells"
+        },
+        {
+          "info": {
+            "name": "List company shells",
+            "type": "http"
+          },
+          "http": {
+            "method": "PUT",
+            "url": "https://www.getonbrd.com/api/v0/company_shells/:id",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer YOUR_API_KEY"
+              }
+            ],
+            "params": [
+              {
+                "name": "id",
+                "value": "client-beta",
+                "type": "path",
+                "description": "Company shell slug from `GET /api/v0/company_shells`."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "bearer",
+              "token": "{{bearerToken}}"
+            }
+          },
+          "docs": "List company shells"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

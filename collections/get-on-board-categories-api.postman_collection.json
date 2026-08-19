@@ -1,0 +1,293 @@
+{
+  "item": [
+    {
+      "id": "2cfc48b5-e2df-4b1f-9141-2f6048fc2240",
+      "name": "Categories",
+      "description": {
+        "content": "Job categories",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "cd41b69b-ca1d-44ae-8b8e-3646ead0abdb",
+          "name": "List job categories",
+          "request": {
+            "name": "List job categories",
+            "description": {},
+            "url": {
+              "path": [
+                "api",
+                "v0",
+                "categories"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "page",
+                  "value": "<integer>",
+                  "description": "Page number, starting at 1."
+                },
+                {
+                  "disabled": false,
+                  "key": "per_page",
+                  "value": "<integer>",
+                  "description": "Number of records per page. The default and maximum are usually 120 unless an endpoint documents a different behavior."
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "7670ad37-807b-47b3-a72e-79f6540ac999",
+              "name": "Returns all job categories with optional pagination.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "categories"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "2"
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "1"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": \"1\",\n      \"type\": \"category\",\n      \"attributes\": {\n        \"name\": \"Programming\",\n        \"dimension\": \"programming\"\n      }\n    },\n    {\n      \"id\": \"1\",\n      \"type\": \"category\",\n      \"attributes\": {\n        \"name\": \"Design\",\n        \"dimension\": \"design\"\n      }\n    },\n    {\n      \"id\": \"1\",\n      \"type\": \"category\",\n      \"attributes\": {\n        \"name\": \"Category 26\",\n        \"dimension\": \"programming\"\n      }\n    },\n    {\n      \"id\": \"1\",\n      \"type\": \"category\",\n      \"attributes\": {\n        \"name\": \"Category 27\",\n        \"dimension\": \"programming\"\n      }\n    },\n    {\n      \"id\": \"1\",\n      \"type\": \"category\",\n      \"attributes\": {\n        \"name\": \"Category 28\",\n        \"dimension\": \"programming\"\n      }\n    },\n    {\n      \"id\": \"1\",\n      \"type\": \"category\",\n      \"attributes\": {\n        \"name\": \"Category 29\",\n        \"dimension\": \"programming\"\n      }\n    },\n    {\n      \"id\": \"1\",\n      \"type\": \"category\",\n      \"attributes\": {\n        \"name\": \"Category 30\",\n        \"dimension\": \"programming\"\n      }\n    }\n  ],\n  \"meta\": {\n    \"page\": 1,\n    \"per_page\": 120,\n    \"total_pages\": 1\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "10f78c8e-74fa-486d-bcdf-0e2084b3fae4",
+          "name": "List jobs by category",
+          "request": {
+            "name": "List jobs by category",
+            "description": {},
+            "url": {
+              "path": [
+                "api",
+                "v0",
+                "categories",
+                ":category_id",
+                "jobs"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "country_code",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "key": "per_page",
+                  "value": "<integer>",
+                  "description": "Number of records per page. The default and maximum are usually 120 unless an endpoint documents a different behavior."
+                }
+              ],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "category_id",
+                  "description": "(Required) Category slug from `GET /api/v0/categories`."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "f5cf7b51-48f1-442e-a900-361fcf2a8842",
+              "name": "Returns the published jobs for a category, optionally filtered by country code.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "categories",
+                    ":category_id",
+                    "jobs"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "country_code",
+                      "value": "latin-america"
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "1"
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "category_id",
+                      "description": "(Required) Category slug from `GET /api/v0/categories`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": \"1\",\n      \"type\": \"job\",\n      \"attributes\": {\n        \"title\": \"JavaScript Ninja\",\n        \"description_headline\": null,\n        \"description\": \"Build reliable products for technical hiring teams.\",\n        \"projects\": \"Build reliable products for technical hiring teams.\",\n        \"functions_headline\": null,\n        \"functions\": \"Build reliable products for technical hiring teams.\",\n        \"benefits_headline\": null,\n        \"benefits\": \"Build reliable products for technical hiring teams.\",\n        \"desirable_headline\": null,\n        \"desirable\": \"\",\n        \"remote\": false,\n        \"remote_modality\": \"no_remote\",\n        \"remote_zone\": null,\n        \"countries\": [\n          \"Chile\"\n        ],\n        \"lang\": \"lang_not_specified\",\n        \"rejected_reasons\": [],\n        \"category_name\": \"Programming\",\n        \"perks\": [],\n        \"min_salary\": 1500,\n        \"max_salary\": 2000,\n        \"published_at\": 1784217402,\n        \"response_time_in_days\": {\n          \"min\": null,\n          \"max\": null\n        },\n        \"applications_count\": 7,\n        \"location_regions\": {\n          \"data\": []\n        },\n        \"location_tenants\": {\n          \"data\": []\n        },\n        \"location_cities\": {\n          \"data\": [\n            {\n              \"id\": 1,\n              \"type\": \"location_city\"\n            }\n          ]\n        },\n        \"modality\": {\n          \"data\": {\n            \"id\": 307,\n            \"type\": \"modality\"\n          }\n        },\n        \"seniority\": {\n          \"data\": {\n            \"id\": 316,\n            \"type\": \"seniority\"\n          }\n        },\n        \"tags\": {\n          \"data\": []\n        },\n        \"company\": {\n          \"data\": {\n            \"id\": 264,\n            \"type\": \"company\"\n          }\n        }\n      },\n      \"links\": {\n        \"public_url\": \"http://test.getonbrd.com/jobs/javascript-ninja-user-262-santiago\"\n      }\n    }\n  ],\n  \"meta\": {\n    \"page\": 1,\n    \"per_page\": 120,\n    \"total_pages\": 1\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "a6808598-db76-495d-85b1-6e63ec31ca0f",
+              "name": "Returns the published jobs for a category, optionally filtered by country code.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "categories",
+                    ":category_id",
+                    "jobs"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "country_code",
+                      "value": "latin-america"
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "1"
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "category_id",
+                      "description": "(Required) Category slug from `GET /api/v0/categories`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Country code should be an ISO 3166-1 alpha-2 code\",\n  \"code\": \"unprocessable_content\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://www.getonbrd.com",
+      "key": "baseUrl"
+    }
+  ],
+  "info": {
+    "_postman_id": "f5ed5f87-ad0f-4e82-bd85-ab5b9aeaddd1",
+    "name": "Get on Board Applications Categories API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "The Get on Board API provides access to the data inside Get on Board, the leading recruitment platform for tech professionals in Latin America.\n\nThere are two facets of the API:\n\n- **Public API** — Open to anyone. Access the same data visible on the platform without logging in: job categories, company profiles, published jobs, and a job search endpoint. No authentication required.\n- **Private API** — Requires authentication. Access your company's private data: jobs, recruitment processes, professionals, and applications. Available to companies with an active subscription plan that includes API access.\n\nBase URL: `https://www.getonbrd.com/api/v0/`\n\nFor bugs, improvement suggestions, or missing features, contact us at team@getonbrd.com.\n\n## Sandbox environment\n\nYou can test any endpoint using the sandbox environment:\n\n```\nhttps://sandbox.getonbrd.dev/api/v0/\n```\n\nWe strongly encourage you to test your API integrations against the sandbox before making live requests in production. The sandbox contains fake data, and certain features like payments may not work.\n\nIf your company wants to test the private API before subscribing, contact us at info@getonbrd.com or via the support chat to discuss temporary access.\n\n## Expanding responses\n\nMany endpoints support the `expand` query parameter to include full related resources instead of ID-only references.\n\n**Default (collapsed)** — Related objects return only `id` and `type`:\n\n```json\n{\n  \"job\": {\n    \"data\": { \"id\": 285, \"type\": \"job\" }\n  }\n}\n```\n\n**Expanded** — Pass `expand[]` to get the full resource with all attributes:\n\n```\nGET /api/v0/applications?expand[]=job&expand[]=professional\n```\n\nYou can expand multiple relationships in a single request. Nested expansion is supported with dot notation (e.g., `expand[]=job.tags`).\n\nSupported expand values vary by endpoint — refer to each endpoint's parameter documentation for available options.\n\n## Pagination and metadata\n\nMost list endpoints return paginated results with a `data` array and a `meta` object:\n\n```json\n{\n  \"data\": [ ... ],\n  \"meta\": {\n    \"page\": 1,\n    \"per_page\": 120,\n    \"total_pages\": 3\n  }\n}\n```\n\n| Parameter  | Type    | Default | Max | Description             |\n|------------|---------|---------|-----|-------------------------|\n| `page`     | integer | 1       | —   | Page number (min 1)     |\n| `per_page` | integer | 120     | 120 | Items per page (min 1)  |\n\nSome collection endpoints intentionally omit pagination metadata because they return bounded reference data or workflow state:\n\n- `GET /api/v0/perks`\n- `GET /api/v0/applications/discard_reasons`\n- `GET /api/v0/processes/{process_id}/phases`\n- `GET /api/v0/webhook_endpoints`\n- `GET /api/v0/webhook_events`\n- `GET /api/v0/matching_jobs` currently ignores `per_page` and omits pagination metadata.\n\n## Date filtering\n\nSome private endpoints support date range filtering using Unix epoch timestamps:\n\n| Parameter | Type    | Description                       |\n|-----------|---------|-----------------------------------|\n| `from`    | integer | Start date (epoch timestamp)      |\n| `to`      | integer | End date (epoch timestamp)        |\n\nInvalid date formats return a `422` error.\n\n## Localization\n\nAPI responses can be localized by setting a language preference. Supported locales: `en` (English), `es` (Spanish), `pt` (Portuguese).\n\n| Parameter | Type   | Description                     |\n|-----------|--------|---------------------------------|\n| `lang`    | string | Locale code: `en`, `es`, or `pt` |\n\nLanguage is resolved in this order:\n\n1. `lang` query parameter (e.g., `?lang=es`)\n2. `Accept-Language` HTTP header\n3. Authenticated user's language preference (private API only)\n4. Default locale\n\nLocalized fields include category names, perk descriptions, country names, and validation error messages. Use `?lang=en` to force English responses.\n\n## Companies Private API\n\nCollection of protected resources and endpoints a subscribed company has access to. Every request needs to be authenticated.\n\n> **Note:** Only companies with an active subscription plan can have access to the private API. The Companies Private API endpoints will return `404` if a subscription expires.\n\n### Authentication\n\nAuthenticate requests by sending the company API key in the `Authorization` header as `Bearer <api_key>`.\n\nThe key can be found in the company's profile page in Get on Board. Look for the section **API access** (`https://www.getonbrd.com/companies/[your-company]/api_settings`).\n\n### How the endpoints work together\n\nThe Companies Private API provides four interconnected endpoints that represent your complete recruitment workflow:\n\n**Jobs** (create postings) → **Applications** (receive candidates) → **Processes** (manage hiring) → **Professionals** (access profiles)\n\n### Core relationships\n\n- **Jobs**: Your job postings. The starting point that attracts candidates.\n- **Applications**: Generated when professionals apply to your jobs.\n- **Processes**: Structured hiring pipelines with phases (screening, interviews, etc.) that organize your recruitment workflow. A job can have multiple processes.\n- **Professionals**: Candidate profiles with detailed information.\n\n### Moving applications between phases\n\nTo move a candidate through your hiring pipeline:\n\n1. List your jobs with `GET /api/v0/jobs`.\n2. Pick a job and list its processes with `GET /api/v0/jobs/{job_id}/processes`. Use the job `id` string returned by `GET /api/v0/jobs`; this is normally a slug, not the numeric relationship ID embedded inside expanded process/job payloads.\n3. List applications for the process with `GET /api/v0/applications?process_id={process_id}`.\n4. Discover available target phases with `GET /api/v0/processes/{process_id}/phases`.\n5. If the target phase has `kind: \"discarded\"`, fetch valid reasons with `GET /api/v0/applications/discard_reasons`.\n6. Move the application with `PATCH /api/v0/applications/{application_id}/phase`.\n\nPhase IDs are numeric. Use a reason `id` from `GET /api/v0/applications/discard_reasons` as `discard_reason` when moving to a discarded phase. Moving an application back to a non-discarded phase clears its stored discard reason.\n\n### Multi-brand posting for ATS partners (company shells)\n\nRecruiting for many client companies through one integration? Authorized partner accounts can create\n**company shells** — public brand profiles (name, logo, description, own company page) for each client —\nand post jobs under those brands with a single API key:\n\n1. Create a shell with `POST /api/v0/company_shells` (a logo is required).\n2. Pass the shell's slug as `company_shell_id` on `POST /api/v0/jobs` or `PUT /api/v0/jobs/{id}`.\n3. The public job page, company profile, feeds, and public API show the client's brand; applications,\n   processes, and billing stay on your partner account.\n\nShell endpoints return `403` for non-partner API keys. Contact Get on Board to enable partner access\nfor your integration.\n\n### Key business rules\n\n- **Professional data access**: The Professionals endpoint has the strictest access controls. You can only access professional profiles when the professional is part of an active hiring process, the professional profile has been \"unlocked\", and you own the hiring process.\n- **Professionals are process-scoped**: Always include `process_id` when listing or retrieving professionals, for example `GET /api/v0/professionals?process_id=123` or `GET /api/v0/professionals/{id}?process_id=123`.\n- **Event payloads are starting points**: Webhook payloads and collapsed relationships identify resources, but some related endpoints still require additional scope such as `process_id`.\n- **Prefer canonical follow-up reads**: When starting from an event or collapsed payload, fetch the resource named by the payload first (for example `GET /api/v0/applications/{application_id}`), then use `expand[]` or process-scoped endpoints as needed.\n- **Data scoping**: All endpoints only return data belonging to your company (jobs you created, applications to your jobs, your hiring processes).\n- **Job moderation**: Jobs must be submitted via `POST /jobs/:id/submit` and approved before going live on the platform.\n- **Expandable relationships**: Use `expand[]=applications`, `expand[]=processes`, etc. to include related data and reduce API calls.\n\n### Read-only smoke test\n\nThe following sequence exercises the public API and the private company workflow without creating, updating, or deleting data:\n\n```bash\ncurl \"https://www.getonbrd.com/api/v0/categories?per_page=3&lang=en\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/jobs?per_page=3&lang=en\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/jobs/JOB_ID_FROM_LIST/processes\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/applications?process_id=PROCESS_ID&expand[]=job&expand[]=professional\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/applications/APPLICATION_ID?expand[]=professional\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/processes/PROCESS_ID/phases\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/professionals?process_id=PROCESS_ID&per_page=2\"\n```",
+      "type": "text/plain"
+    }
+  }
+}

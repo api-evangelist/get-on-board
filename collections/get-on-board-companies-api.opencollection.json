@@ -1,0 +1,98 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Get on Board Applications Companies API",
+    "version": "0.1.0"
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Companies",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List companies",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://www.getonbrd.com/api/v0/companies",
+            "params": [
+              {
+                "name": "page",
+                "value": "2",
+                "type": "query",
+                "description": "Page number, starting at 1."
+              },
+              {
+                "name": "per_page",
+                "value": "1",
+                "type": "query",
+                "description": "Number of records per page. The default and maximum are usually 120 unless an endpoint documents a different behavior."
+              }
+            ]
+          },
+          "docs": "List companies"
+        },
+        {
+          "info": {
+            "name": "List jobs by company",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://www.getonbrd.com/api/v0/companies/:company_id/jobs",
+            "params": [
+              {
+                "name": "company_id",
+                "value": "client-shell",
+                "type": "path",
+                "description": "Company identifier from `GET /api/v0/companies`."
+              },
+              {
+                "name": "expand",
+                "value": "[\"company\"]",
+                "type": "query"
+              },
+              {
+                "name": "page",
+                "value": "2",
+                "type": "query",
+                "description": "Page number, starting at 1."
+              },
+              {
+                "name": "per_page",
+                "value": "1",
+                "type": "query",
+                "description": "Number of records per page. The default and maximum are usually 120 unless an endpoint documents a different behavior."
+              }
+            ]
+          },
+          "docs": "List jobs by company"
+        },
+        {
+          "info": {
+            "name": "Show company details",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://www.getonbrd.com/api/v0/companies/:id",
+            "params": [
+              {
+                "name": "id",
+                "value": "client-shell",
+                "type": "path",
+                "description": "Company identifier from `GET /api/v0/companies`."
+              }
+            ]
+          },
+          "docs": "Show company details"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

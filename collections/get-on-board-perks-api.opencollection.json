@@ -1,0 +1,29 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Get on Board Applications Perks API",
+    "version": "0.1.0"
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Perks",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List perks",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://www.getonbrd.com/api/v0/perks"
+          },
+          "docs": "List perks"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

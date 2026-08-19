@@ -1,0 +1,84 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Get on Board Applications Search API",
+    "version": "0.1.0"
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Search",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Search jobs",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://www.getonbrd.com/api/v0/search/jobs",
+            "params": [
+              {
+                "name": "board_host",
+                "value": "does-not-exist.example",
+                "type": "query"
+              },
+              {
+                "name": "companies",
+                "value": "not-json",
+                "type": "query"
+              },
+              {
+                "name": "country_code",
+                "value": "CHL",
+                "type": "query"
+              },
+              {
+                "name": "expand",
+                "value": "[\"company\"]",
+                "type": "query"
+              },
+              {
+                "name": "featured",
+                "value": "true",
+                "type": "query"
+              },
+              {
+                "name": "lang",
+                "value": "en'\"\\'\\\"",
+                "type": "query",
+                "description": "Response locale. Supported values are `en`, `es`, and `pt`."
+              },
+              {
+                "name": "page",
+                "value": "abc",
+                "type": "query",
+                "description": "Page number, starting at 1."
+              },
+              {
+                "name": "per_page",
+                "value": "999",
+                "type": "query",
+                "description": "Number of records per page. The default and maximum are usually 120 unless an endpoint documents a different behavior."
+              },
+              {
+                "name": "query",
+                "value": "rails",
+                "type": "query"
+              },
+              {
+                "name": "remote",
+                "value": "true",
+                "type": "query"
+              }
+            ]
+          },
+          "docs": "Search jobs"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

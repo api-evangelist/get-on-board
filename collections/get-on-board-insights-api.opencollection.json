@@ -1,0 +1,53 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Get on Board Applications Insights API",
+    "version": "0.1.0"
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Insights",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Get an insight",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://www.getonbrd.com/api/v0/insights/:id",
+            "params": [
+              {
+                "name": "admin",
+                "value": "true",
+                "type": "query"
+              },
+              {
+                "name": "id",
+                "value": "test_query",
+                "type": "path",
+                "description": "Insight query ID."
+              },
+              {
+                "name": "no_cache",
+                "value": "true",
+                "type": "query"
+              },
+              {
+                "name": "year",
+                "value": "2024",
+                "type": "query",
+                "description": "Calendar year used to filter insight data."
+              }
+            ]
+          },
+          "docs": "Get an insight"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

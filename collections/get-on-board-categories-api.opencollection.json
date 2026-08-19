@@ -1,0 +1,73 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Get on Board Applications Categories API",
+    "version": "0.1.0"
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Categories",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List job categories",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://www.getonbrd.com/api/v0/categories",
+            "params": [
+              {
+                "name": "page",
+                "value": "2",
+                "type": "query",
+                "description": "Page number, starting at 1."
+              },
+              {
+                "name": "per_page",
+                "value": "1",
+                "type": "query",
+                "description": "Number of records per page. The default and maximum are usually 120 unless an endpoint documents a different behavior."
+              }
+            ]
+          },
+          "docs": "List job categories"
+        },
+        {
+          "info": {
+            "name": "List jobs by category",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://www.getonbrd.com/api/v0/categories/:category_id/jobs",
+            "params": [
+              {
+                "name": "category_id",
+                "value": "1",
+                "type": "path",
+                "description": "Category slug from `GET /api/v0/categories`."
+              },
+              {
+                "name": "country_code",
+                "value": "latin-america",
+                "type": "query"
+              },
+              {
+                "name": "per_page",
+                "value": "1",
+                "type": "query",
+                "description": "Number of records per page. The default and maximum are usually 120 unless an endpoint documents a different behavior."
+              }
+            ]
+          },
+          "docs": "List jobs by category"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

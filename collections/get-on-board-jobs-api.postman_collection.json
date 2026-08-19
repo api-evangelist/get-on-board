@@ -1,0 +1,2739 @@
+{
+  "item": [
+    {
+      "id": "0f1cc8c4-2c0c-4fba-9391-cdee5694bfb1",
+      "name": "Jobs",
+      "description": {
+        "content": "Job posting CRUD operations",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "7dddb801-58ba-499f-bbcb-782132d8007c",
+          "name": "List company jobs",
+          "request": {
+            "name": "List company jobs",
+            "description": {
+              "content": "To manage candidate phase moves, choose a job from this response and call `GET /api/v0/jobs/{job_id}/processes` with the returned job identifier.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "v0",
+                "jobs"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "page",
+                  "value": "<integer>",
+                  "description": "Page number, starting at 1."
+                },
+                {
+                  "disabled": false,
+                  "key": "per_page",
+                  "value": "<integer>",
+                  "description": "Number of records per page. The default and maximum are usually 120 unless an endpoint documents a different behavior."
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "14a9d89a-d7f1-41e5-985f-03eeef63a5b0",
+              "name": "Returns a paginated list of jobs for the authenticated company.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "2"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": [],\n  \"meta\": {\n    \"page\": 1,\n    \"per_page\": 120,\n    \"total_pages\": 1\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "521d101a-dee4-44b3-8d19-4ad9f80bbac4",
+              "name": "Returns a paginated list of jobs for the authenticated company.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "2"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"(Status 401) Unauthorized access to the API\",\n  \"code\": \"unauthorized\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "ad747c97-9f4a-43a4-8ea8-1c6631bd9625",
+          "name": "Create a job",
+          "request": {
+            "name": "Create a job",
+            "description": {
+              "content": "### Remote modality and locations\n\n`remote_modality` controls which location fields the Jobs API reads:\n\n- `fully_remote`: do not send location fields. Regions, countries, and cities are cleared.\n- `remote_local`: send `location_region_ids` and/or `location_country_ids` as slugs from `GET /api/v0/regions` and `GET /api/v0/countries`.\n- `no_remote`, `hybrid`, `temporarily_remote`: send `location_city_ids` as numeric city IDs from `GET /api/v0/cities`.\n\nUnknown or wrong identifier types resolve to empty locations and can return `422`.\n`location_city_ids` uses city IDs, not city names, country slugs, or `tenant_city_ids`.\n\nTypical job publishing flow: create the job with `POST /api/v0/jobs`, review validation errors if the response is `422`, then submit the saved draft with `POST /api/v0/jobs/{job_id}/submit` so Get on Board can moderate it before publication. Use `lang=en` while integrating if you want English validation messages.\n\n### Posting on behalf of a client brand (company shells)\n\nPartner accounts (typically ATS integrations posting for many client companies) can brand a job\nas one of their **company shells** instead of their own account: send `company_shell_id` with the\nshell's slug (from `GET /api/v0/company_shells`). Every public surface — job page, company profile\nlink, logo, feeds, and public API — then shows the client company's identity, while applications,\nprocesses, and billing stay on your account. Omit the field for a normal job; on update, send `\"\"`\nto detach the shell. See the **Company shells** section to create and manage shells.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "v0",
+                "jobs"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"<string>\",\n  \"description\": \"<string>\",\n  \"remote_modality\": \"<string>\",\n  \"projects\": \"<string>\",\n  \"min_salary\": \"<string>\",\n  \"max_salary\": \"<string>\",\n  \"seniority_id\": \"<string>\",\n  \"modality_id\": \"<string>\",\n  \"category_id\": \"<string>\",\n  \"questions\": [\n    {\n      \"title\": \"<string>\",\n      \"kind\": \"<string>\",\n      \"ai_generated\": \"<string>\",\n      \"score\": \"<string>\",\n      \"choices\": [\n        {\n          \"label\": \"<string>\",\n          \"value\": \"<string>\"\n        },\n        {\n          \"label\": \"<string>\",\n          \"value\": \"<string>\"\n        }\n      ]\n    },\n    {\n      \"title\": \"<string>\",\n      \"kind\": \"<string>\",\n      \"ai_generated\": \"<string>\",\n      \"score\": \"<string>\",\n      \"choices\": [\n        {\n          \"label\": \"<string>\",\n          \"value\": \"<string>\"\n        },\n        {\n          \"label\": \"<string>\",\n          \"value\": \"<string>\"\n        }\n      ]\n    }\n  ],\n  \"expand\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"functions\": \"<string>\",\n  \"perks\": \"<string>\",\n  \"state\": \"<string>\",\n  \"location_region_ids\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"location_country_ids\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"location_city_ids\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"company_shell_id\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "b4d853e6-f8b2-4e1f-b6c0-47f466419422",
+              "name": "Creates a new job posting for the authenticated company.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "(Required) Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Ruby on Rails Developer\",\n  \"description\": \"We are looking for a backend engineer who can own product features, collaborate closely with design, and ship reliable Rails code across a growing platform.\",\n  \"projects\": \"You will work on our ATS and recruiting platform, improve internal APIs, and help keep the hiring workflow stable as more customers integrate with us.\",\n  \"functions\": \"Build Rails features, review code, write tests, and improve the API experience for customers integrating with the platform.\",\n  \"remote_modality\": \"fully_remote\",\n  \"min_salary\": 1500,\n  \"max_salary\": 2000,\n  \"modality_id\": 376,\n  \"seniority_id\": 367,\n  \"category_id\": \"programming\",\n  \"perks\": \"pet_friendly, informal_dresscode, life_insurance\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": {\n    \"id\": \"random-consultant-user-158-remote\",\n    \"type\": \"job\",\n    \"attributes\": {\n      \"title\": \"Random Consultant\",\n      \"description_headline\": null,\n      \"description\": \"We are looking for a skilled RoR DevWe are looking for a skilled RoR DevWe are looking for a skilled RoR DevWe are looking for a skilled RoR DevWe are looking for a skilled RoR DevWe are looking for a skilled RoR DevWe are looking for a skilled RoR DevWe are looking for a skilled RoR DevWe are looking for a skilled RoR DevWe are looking for a skilled RoR Dev\",\n      \"projects\": \"You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.You will be mostly working on our RoR app.\",\n      \"functions_headline\": null,\n      \"functions\": \"The functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role areThe functions for this role are\",\n      \"benefits_headline\": null,\n      \"benefits\": \"\",\n      \"desirable_headline\": null,\n      \"desirable\": \"\",\n      \"remote\": true,\n      \"remote_modality\": \"fully_remote\",\n      \"remote_zone\": null,\n      \"countries\": [\n        \"Remote\"\n      ],\n      \"lang\": \"lang_not_specified\",\n      \"rejected_reasons\": [],\n      \"category_name\": \"Programming\",\n      \"perks\": [\n        \"pet_friendly\",\n        \"informal_dresscode\",\n        \"life_insurance\",\n        \"remote_full\"\n      ],\n      \"min_salary\": 1500,\n      \"max_salary\": 2000,\n      \"published_at\": 0,\n      \"response_time_in_days\": {\n        \"min\": null,\n        \"max\": null\n      },\n      \"applications_count\": 0,\n      \"location_regions\": {\n        \"data\": []\n      },\n      \"location_tenants\": {\n        \"data\": []\n      },\n      \"location_cities\": {\n        \"data\": []\n      },\n      \"modality\": {\n        \"data\": {\n          \"id\": 222,\n          \"type\": \"modality\"\n        }\n      },\n      \"seniority\": {\n        \"data\": {\n          \"id\": 231,\n          \"type\": \"seniority\"\n        }\n      },\n      \"tags\": {\n        \"data\": []\n      },\n      \"state\": \"draft\",\n      \"deleted\": false,\n      \"questions\": {\n        \"data\": []\n      },\n      \"location_countries\": {\n        \"data\": []\n      },\n      \"submitted_at\": 0,\n      \"created_at\": 1784217384,\n      \"updated_at\": 1784217384,\n      \"company_shell_id\": null\n    }\n  },\n  \"meta\": {\n    \"warnings\": {\n      \"questions\": [\n        {\n          \"code\": \"invalid_question\",\n          \"at_index\": 0,\n          \"errors\": {\n            \"choices\": [\n              \"Debes agregar al menos una opción.\"\n            ]\n          }\n        }\n      ]\n    }\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "fbfb05ce-d020-4a3b-b7d6-96c9ecdc1748",
+              "name": "Creates a new job posting for the authenticated company.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "(Required) Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Ruby on Rails Developer\",\n  \"description\": \"We are looking for a backend engineer who can own product features, collaborate closely with design, and ship reliable Rails code across a growing platform.\",\n  \"projects\": \"You will work on our ATS and recruiting platform, improve internal APIs, and help keep the hiring workflow stable as more customers integrate with us.\",\n  \"functions\": \"Build Rails features, review code, write tests, and improve the API experience for customers integrating with the platform.\",\n  \"remote_modality\": \"fully_remote\",\n  \"min_salary\": 1500,\n  \"max_salary\": 2000,\n  \"modality_id\": 376,\n  \"seniority_id\": 367,\n  \"category_id\": \"programming\",\n  \"perks\": \"pet_friendly, informal_dresscode, life_insurance\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"(Status 401) Unauthorized access.\",\n  \"code\": \"unauthorized\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "ad262d4b-74a5-4ab4-beba-50e37dcea25b",
+              "name": "Creates a new job posting for the authenticated company.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "(Required) Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Ruby on Rails Developer\",\n  \"description\": \"We are looking for a backend engineer who can own product features, collaborate closely with design, and ship reliable Rails code across a growing platform.\",\n  \"projects\": \"You will work on our ATS and recruiting platform, improve internal APIs, and help keep the hiring workflow stable as more customers integrate with us.\",\n  \"functions\": \"Build Rails features, review code, write tests, and improve the API experience for customers integrating with the platform.\",\n  \"remote_modality\": \"fully_remote\",\n  \"min_salary\": 1500,\n  \"max_salary\": 2000,\n  \"modality_id\": 376,\n  \"seniority_id\": 367,\n  \"category_id\": \"programming\",\n  \"perks\": \"pet_friendly, informal_dresscode, life_insurance\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Record not found\",\n  \"code\": \"not_found\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "5dcd3aa8-7388-4cea-a96d-680ddd753486",
+              "name": "Creates a new job posting for the authenticated company.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "(Required) Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Ruby on Rails Developer\",\n  \"description\": \"We are looking for a backend engineer who can own product features, collaborate closely with design, and ship reliable Rails code across a growing platform.\",\n  \"projects\": \"You will work on our ATS and recruiting platform, improve internal APIs, and help keep the hiring workflow stable as more customers integrate with us.\",\n  \"functions\": \"Build Rails features, review code, write tests, and improve the API experience for customers integrating with the platform.\",\n  \"remote_modality\": \"fully_remote\",\n  \"min_salary\": 1500,\n  \"max_salary\": 2000,\n  \"modality_id\": 376,\n  \"seniority_id\": 367,\n  \"category_id\": \"programming\",\n  \"perks\": \"pet_friendly, informal_dresscode, life_insurance\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": {\n    \"category\": [\n      \"Category could not be inferred for job title: Random Consultant\"\n    ],\n    \"min_salary\": [\n      \"You must specify a salary range.\",\n      \"Please enter only numbers here.\"\n    ],\n    \"max_salary\": [\n      \"You must specify a salary range.\",\n      \"Please enter only numbers here.\"\n    ],\n    \"location_cities\": [\n      \"For this job modality, the location_cities field (using city IDs) is required. Use the public Cities API to get a list of the city IDs.\"\n    ],\n    \"seniority\": [\n      \"Seniority not found or invalid\"\n    ],\n    \"description\": [\n      \"This field cannot be blank.\"\n    ],\n    \"projects\": [\n      \"This field cannot be blank.\"\n    ],\n    \"title\": [\n      \"Enter the job title\"\n    ],\n    \"description_plain_text\": [\n      \"This field must be at least 200 characters.\"\n    ],\n    \"projects_plain_text\": [\n      \"This field must be at least 300 characters.\"\n    ],\n    \"company_shell\": [\n      \"is invalid\"\n    ]\n  },\n  \"code\": \"unprocessable_content\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "f02575cd-2849-4ade-a7ca-121808cc0e52",
+          "name": "Delete a job",
+          "request": {
+            "name": "Delete a job",
+            "description": {},
+            "url": {
+              "path": [
+                "api",
+                "v0",
+                "jobs",
+                ":id"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "id",
+                  "description": "(Required) Job slug from `GET /api/v0/jobs`."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "DELETE",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "419c7d8c-9a5d-461b-89d8-9575e849da9a",
+              "name": "Soft-deletes a job posting by its slug.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs",
+                    ":id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "id",
+                      "description": "(Required) Job slug from `GET /api/v0/jobs`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": \"ok\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "c208dcd8-87a0-4284-b1f9-6d970760f82f",
+              "name": "Soft-deletes a job posting by its slug.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs",
+                    ":id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "id",
+                      "description": "(Required) Job slug from `GET /api/v0/jobs`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"(Status 401) Unauthorized access.\",\n  \"code\": \"unauthorized\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "e8f658a4-8503-4642-9407-1de5be2937b8",
+              "name": "Soft-deletes a job posting by its slug.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs",
+                    ":id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "id",
+                      "description": "(Required) Job slug from `GET /api/v0/jobs`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Already deleted\",\n  \"code\": \"unprocessable_content\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "79fc7bc2-d0bc-484a-95a8-2028c6fd7edd",
+          "name": "Retrieve a job",
+          "request": {
+            "name": "Retrieve a job",
+            "description": {},
+            "url": {
+              "path": [
+                "api",
+                "v0",
+                "jobs",
+                ":id"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "expand",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "key": "expand",
+                  "value": "<string>"
+                }
+              ],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "id",
+                  "description": "(Required) Job slug from `GET /api/v0/jobs`."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "e0fb660d-2cac-4a0c-be09-468865aec901",
+              "name": "Returns the details of a specific job by its slug.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs",
+                    ":id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "expand",
+                      "value": "questions"
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "id",
+                      "description": "(Required) Job slug from `GET /api/v0/jobs`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": {\n    \"id\": \"javascript-ninja-user-120-santiago-b95f\",\n    \"type\": \"job\",\n    \"attributes\": {\n      \"title\": \"JavaScript Ninja\",\n      \"description_headline\": null,\n      \"description\": \"Build reliable products for technical hiring teams.\",\n      \"projects\": \"Build reliable products for technical hiring teams.\",\n      \"functions_headline\": null,\n      \"functions\": \"Build reliable products for technical hiring teams.\",\n      \"benefits_headline\": null,\n      \"benefits\": \"Build reliable products for technical hiring teams.\",\n      \"desirable_headline\": null,\n      \"desirable\": \"\",\n      \"remote\": false,\n      \"remote_modality\": \"no_remote\",\n      \"remote_zone\": null,\n      \"countries\": [\n        \"Chile\"\n      ],\n      \"lang\": \"lang_not_specified\",\n      \"rejected_reasons\": [\n        {\n          \"bad_job\": {\n            \"title\": \"Low salary\",\n            \"description\": \"We only publish jobs offering market-rate salaries or higher, according to a %{seniority} position. The salary range for this job is lower than the minimum expected. Consider increasing the salary level, or lowering the seniority of the position.\"\n          }\n        }\n      ],\n      \"category_name\": \"Programming\",\n      \"perks\": [],\n      \"min_salary\": 1500,\n      \"max_salary\": 2000,\n      \"published_at\": 0,\n      \"response_time_in_days\": {\n        \"min\": null,\n        \"max\": null\n      },\n      \"applications_count\": 0,\n      \"location_regions\": {\n        \"data\": []\n      },\n      \"location_tenants\": {\n        \"data\": []\n      },\n      \"location_cities\": {\n        \"data\": [\n          {\n            \"id\": 1,\n            \"type\": \"location_city\"\n          }\n        ]\n      },\n      \"modality\": {\n        \"data\": {\n          \"id\": 185,\n          \"type\": \"modality\"\n        }\n      },\n      \"seniority\": {\n        \"data\": {\n          \"id\": 194,\n          \"type\": \"seniority\"\n        }\n      },\n      \"tags\": {\n        \"data\": []\n      },\n      \"state\": \"rejected\",\n      \"deleted\": false,\n      \"questions\": {\n        \"data\": []\n      },\n      \"location_countries\": {\n        \"data\": []\n      },\n      \"submitted_at\": 1784044578,\n      \"created_at\": 1784217378,\n      \"updated_at\": 1784217378,\n      \"company_shell_id\": null\n    }\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "53e6a59b-2310-4c76-ae22-792a864cd4b0",
+              "name": "Returns the details of a specific job by its slug.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs",
+                    ":id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "expand",
+                      "value": "questions"
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "id",
+                      "description": "(Required) Job slug from `GET /api/v0/jobs`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"(Status 401) Unauthorized access to the API\",\n  \"code\": \"unauthorized\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "7ce701a4-c208-49d3-a199-df5d9edd5582",
+              "name": "Returns the details of a specific job by its slug.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs",
+                    ":id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "expand",
+                      "value": "questions"
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "id",
+                      "description": "(Required) Job slug from `GET /api/v0/jobs`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Record not found\",\n  \"code\": \"not_found\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "e3534a20-54d0-4027-879b-8d7834c97a28",
+          "name": "Update a job",
+          "request": {
+            "name": "Update a job",
+            "description": {
+              "content": "### Remote modality and locations\n\n`remote_modality` controls which location fields the Jobs API reads:\n\n- `fully_remote`: do not send location fields. Regions, countries, and cities are cleared.\n- `remote_local`: send `location_region_ids` and/or `location_country_ids` as slugs from `GET /api/v0/regions` and `GET /api/v0/countries`.\n- `no_remote`, `hybrid`, `temporarily_remote`: send `location_city_ids` as numeric city IDs from `GET /api/v0/cities`.\n\nUnknown or wrong identifier types resolve to empty locations and can return `422`.\n`location_city_ids` uses city IDs, not city names, country slugs, or `tenant_city_ids`.\n\n### Posting on behalf of a client brand (company shells)\n\nPartner accounts (typically ATS integrations posting for many client companies) can brand a job\nas one of their **company shells** instead of their own account: send `company_shell_id` with the\nshell's slug (from `GET /api/v0/company_shells`). Every public surface — job page, company profile\nlink, logo, feeds, and public API — then shows the client company's identity, while applications,\nprocesses, and billing stay on your account. Omit the field for a normal job; on update, send `\"\"`\nto detach the shell. See the **Company shells** section to create and manage shells.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "v0",
+                "jobs",
+                ":id"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "id",
+                  "description": "(Required) Job slug from `GET /api/v0/jobs`."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expand\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"questions\": [\n    {\n      \"slug\": \"<string>\",\n      \"title\": \"<string>\",\n      \"kind\": \"<string>\",\n      \"id\": \"<string>\",\n      \"language\": \"<string>\",\n      \"hidden\": \"<string>\"\n    },\n    {\n      \"slug\": \"<string>\",\n      \"title\": \"<string>\",\n      \"kind\": \"<string>\",\n      \"id\": \"<string>\",\n      \"language\": \"<string>\",\n      \"hidden\": \"<string>\"\n    }\n  ],\n  \"title\": \"<string>\",\n  \"description\": \"<string>\",\n  \"remote_modality\": \"<string>\",\n  \"location_region_ids\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"location_country_ids\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"location_city_ids\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"company_shell_id\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "c54e92b0-95e3-4426-8fea-8a839ab0fa6e",
+              "name": "Updates an existing job posting by its slug.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs",
+                    ":id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "id",
+                      "description": "(Required) Job slug from `GET /api/v0/jobs`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "PUT",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Updated Ruby on Rails Developer\",\n  \"description\": \"We are updating this role with a clearer scope, stronger expectations, and a more complete explanation of the work the engineer will own.\",\n  \"projects\": \"You will keep improving our Rails application, internal APIs, and the workflows companies use to manage hiring.\",\n  \"functions\": \"Ship features, review pull requests, improve observability, and maintain a stable customer-facing API.\",\n  \"min_salary\": 2000,\n  \"max_salary\": 2800,\n  \"perks\": \"pet_friendly\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": {\n    \"id\": \"javascript-ninja-user-143-santiago\",\n    \"type\": \"job\",\n    \"attributes\": {\n      \"title\": \"Updated Draft Job\",\n      \"description_headline\": null,\n      \"description\": \"Build reliable products for technical hiring teams.\",\n      \"projects\": \"Build reliable products for technical hiring teams.\",\n      \"functions_headline\": null,\n      \"functions\": \"Build reliable products for technical hiring teams.\",\n      \"benefits_headline\": null,\n      \"benefits\": \"Build reliable products for technical hiring teams.\",\n      \"desirable_headline\": null,\n      \"desirable\": \"\",\n      \"remote\": false,\n      \"remote_modality\": \"no_remote\",\n      \"remote_zone\": null,\n      \"countries\": [\n        \"Chile\"\n      ],\n      \"lang\": \"lang_not_specified\",\n      \"rejected_reasons\": [],\n      \"category_name\": \"Programming\",\n      \"perks\": [],\n      \"min_salary\": 1500,\n      \"max_salary\": 2000,\n      \"published_at\": 0,\n      \"response_time_in_days\": {\n        \"min\": null,\n        \"max\": null\n      },\n      \"applications_count\": 0,\n      \"location_regions\": {\n        \"data\": []\n      },\n      \"location_tenants\": {\n        \"data\": []\n      },\n      \"location_cities\": {\n        \"data\": [\n          {\n            \"id\": 1,\n            \"type\": \"location_city\"\n          }\n        ]\n      },\n      \"modality\": {\n        \"data\": {\n          \"id\": 210,\n          \"type\": \"modality\"\n        }\n      },\n      \"seniority\": {\n        \"data\": {\n          \"id\": 219,\n          \"type\": \"seniority\"\n        }\n      },\n      \"tags\": {\n        \"data\": []\n      },\n      \"state\": \"draft\",\n      \"deleted\": false,\n      \"questions\": {\n        \"data\": []\n      },\n      \"location_countries\": {\n        \"data\": []\n      },\n      \"submitted_at\": 0,\n      \"created_at\": 1784217382,\n      \"updated_at\": 1784217382,\n      \"company_shell_id\": null\n    }\n  },\n  \"meta\": {\n    \"warnings\": {\n      \"questions\": [\n        {\n          \"code\": \"question_not_found\",\n          \"detail\": \"Question with slug 'non-existent-slug' not found in this job\",\n          \"at_index\": 0\n        }\n      ]\n    }\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "b54c331d-008c-4043-a49e-4a2f09d4707b",
+              "name": "Updates an existing job posting by its slug.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs",
+                    ":id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "id",
+                      "description": "(Required) Job slug from `GET /api/v0/jobs`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "PUT",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Updated Ruby on Rails Developer\",\n  \"description\": \"We are updating this role with a clearer scope, stronger expectations, and a more complete explanation of the work the engineer will own.\",\n  \"projects\": \"You will keep improving our Rails application, internal APIs, and the workflows companies use to manage hiring.\",\n  \"functions\": \"Ship features, review pull requests, improve observability, and maintain a stable customer-facing API.\",\n  \"min_salary\": 2000,\n  \"max_salary\": 2800,\n  \"perks\": \"pet_friendly\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"(Status 401) Unauthorized access.\",\n  \"code\": \"unauthorized\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "a1c3aa0b-568d-47fc-b101-a8ae97b431f2",
+              "name": "Updates an existing job posting by its slug.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs",
+                    ":id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "id",
+                      "description": "(Required) Job slug from `GET /api/v0/jobs`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "PUT",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Updated Ruby on Rails Developer\",\n  \"description\": \"We are updating this role with a clearer scope, stronger expectations, and a more complete explanation of the work the engineer will own.\",\n  \"projects\": \"You will keep improving our Rails application, internal APIs, and the workflows companies use to manage hiring.\",\n  \"functions\": \"Ship features, review pull requests, improve observability, and maintain a stable customer-facing API.\",\n  \"min_salary\": 2000,\n  \"max_salary\": 2800,\n  \"perks\": \"pet_friendly\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Record not found\",\n  \"code\": \"not_found\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "0bdfc6cd-2431-46b3-8f75-830150fdd88c",
+              "name": "Updates an existing job posting by its slug.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs",
+                    ":id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "id",
+                      "description": "(Required) Job slug from `GET /api/v0/jobs`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "PUT",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Updated Ruby on Rails Developer\",\n  \"description\": \"We are updating this role with a clearer scope, stronger expectations, and a more complete explanation of the work the engineer will own.\",\n  \"projects\": \"You will keep improving our Rails application, internal APIs, and the workflows companies use to manage hiring.\",\n  \"functions\": \"Ship features, review pull requests, improve observability, and maintain a stable customer-facing API.\",\n  \"min_salary\": 2000,\n  \"max_salary\": 2800,\n  \"perks\": \"pet_friendly\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": {\n    \"title\": [\n      \"Enter the job title\"\n    ],\n    \"modality\": [\n      \"must be declared before submitting for moderation\"\n    ]\n  },\n  \"code\": \"unprocessable_content\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "43e3849b-49a8-40a8-9b4d-a63583e20322",
+          "name": "List job processes",
+          "request": {
+            "name": "List job processes",
+            "description": {
+              "content": "Use a returned process `id` with `GET /api/v0/processes/{process_id}/phases` to discover target phases, and with `GET /api/v0/applications?process_id={process_id}` to list applications in that pipeline.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "v0",
+                "jobs",
+                ":job_id",
+                "processes"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "active",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "key": "from",
+                  "value": "<string>",
+                  "description": "Start of the date range as a Unix epoch timestamp."
+                },
+                {
+                  "disabled": false,
+                  "key": "per_page",
+                  "value": "<integer>",
+                  "description": "Number of records per page. The default and maximum are usually 120 unless an endpoint documents a different behavior."
+                },
+                {
+                  "disabled": false,
+                  "key": "to",
+                  "value": "<long>",
+                  "description": "End of the date range as a Unix epoch timestamp."
+                }
+              ],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "job_id",
+                  "description": "(Required) Job slug or identifier from `GET /api/v0/jobs`."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "bb485d9b-7c71-43ba-bb10-a6f011f93c93",
+              "name": "Returns a paginated list of hiring processes for a specific job.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs",
+                    ":job_id",
+                    "processes"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "active",
+                      "value": "true"
+                    },
+                    {
+                      "key": "from",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "to",
+                      "value": "1784130984"
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "job_id",
+                      "description": "(Required) Job slug or identifier from `GET /api/v0/jobs`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": \"1\",\n      \"type\": \"process\",\n      \"attributes\": {\n        \"active\": true,\n        \"unlocked\": false,\n        \"featured\": false,\n        \"expires_on\": 0,\n        \"created_at\": 1784217385,\n        \"updated_at\": 1784217385,\n        \"featured_at\": 0,\n        \"closed_at\": 0,\n        \"job\": {\n          \"data\": {\n            \"id\": 225,\n            \"type\": \"job\"\n          }\n        },\n        \"phases\": {\n          \"data\": []\n        }\n      }\n    }\n  ],\n  \"meta\": {\n    \"page\": 1,\n    \"per_page\": 120,\n    \"total_pages\": 1\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "e1c2d3db-c76c-4923-b67d-996ccac82617",
+              "name": "Returns a paginated list of hiring processes for a specific job.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs",
+                    ":job_id",
+                    "processes"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "active",
+                      "value": "true"
+                    },
+                    {
+                      "key": "from",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "to",
+                      "value": "1784130984"
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "job_id",
+                      "description": "(Required) Job slug or identifier from `GET /api/v0/jobs`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"(Status 401) Unauthorized access.\",\n  \"code\": \"unauthorized\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "df06ae6e-bc7e-4c06-a835-56aaaef494d1",
+              "name": "Returns a paginated list of hiring processes for a specific job.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs",
+                    ":job_id",
+                    "processes"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "active",
+                      "value": "true"
+                    },
+                    {
+                      "key": "from",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "per_page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "to",
+                      "value": "1784130984"
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "job_id",
+                      "description": "(Required) Job slug or identifier from `GET /api/v0/jobs`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Invalid date formats in paremeters. Use an Epoch time format.\",\n  \"code\": \"unprocessable_content\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "7374da0e-773e-46a3-9cc7-d5812a3a978b",
+          "name": "Republish a job",
+          "request": {
+            "name": "Republish a job",
+            "description": {
+              "content": "Use this only for jobs your company owns that are currently unpublished. It restores publication without creating a new job.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "v0",
+                "jobs",
+                ":job_id",
+                "publish"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "job_id",
+                  "description": "(Required) Job slug or identifier from `GET /api/v0/jobs`."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "2870db20-7601-4965-8f04-80c6e7a518c9",
+              "name": "Republishes an owned unpublished job without using the delete flow.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs",
+                    ":job_id",
+                    "publish"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "job_id",
+                      "description": "(Required) Job slug or identifier from `GET /api/v0/jobs`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": {\n    \"id\": \"javascript-ninja-user-279-santiago\",\n    \"type\": \"job\",\n    \"attributes\": {\n      \"title\": \"JavaScript Ninja\",\n      \"description_headline\": null,\n      \"description\": \"Build reliable products for technical hiring teams.\",\n      \"projects\": \"Build reliable products for technical hiring teams.\",\n      \"functions_headline\": null,\n      \"functions\": \"Build reliable products for technical hiring teams.\",\n      \"benefits_headline\": null,\n      \"benefits\": \"Build reliable products for technical hiring teams.\",\n      \"desirable_headline\": null,\n      \"desirable\": \"\",\n      \"remote\": false,\n      \"remote_modality\": \"no_remote\",\n      \"remote_zone\": null,\n      \"countries\": [\n        \"Chile\"\n      ],\n      \"lang\": \"lang_not_specified\",\n      \"rejected_reasons\": [],\n      \"category_name\": \"Programming\",\n      \"perks\": [],\n      \"min_salary\": 1500,\n      \"max_salary\": 2000,\n      \"published_at\": 1784217405,\n      \"response_time_in_days\": {\n        \"min\": null,\n        \"max\": null\n      },\n      \"applications_count\": 0,\n      \"location_regions\": {\n        \"data\": []\n      },\n      \"location_tenants\": {\n        \"data\": []\n      },\n      \"location_cities\": {\n        \"data\": [\n          {\n            \"id\": 1,\n            \"type\": \"location_city\"\n          }\n        ]\n      },\n      \"modality\": {\n        \"data\": {\n          \"id\": 323,\n          \"type\": \"modality\"\n        }\n      },\n      \"seniority\": {\n        \"data\": {\n          \"id\": 332,\n          \"type\": \"seniority\"\n        }\n      },\n      \"tags\": {\n        \"data\": []\n      },\n      \"state\": \"published\",\n      \"company_shell_id\": null,\n      \"deleted\": false,\n      \"questions\": {\n        \"data\": []\n      },\n      \"location_countries\": {\n        \"data\": []\n      },\n      \"submitted_at\": 0,\n      \"created_at\": 1784217405,\n      \"updated_at\": 1784217405\n    }\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "b2a485c6-8bb6-41b4-ab90-831f95c71a78",
+              "name": "Republishes an owned unpublished job without using the delete flow.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs",
+                    ":job_id",
+                    "publish"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "job_id",
+                      "description": "(Required) Job slug or identifier from `GET /api/v0/jobs`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"(Status 401) Unauthorized access to the API\",\n  \"code\": \"unauthorized\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "a6804fcd-79f2-4e18-a7bd-ef546c276780",
+              "name": "Republishes an owned unpublished job without using the delete flow.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs",
+                    ":job_id",
+                    "publish"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "job_id",
+                      "description": "(Required) Job slug or identifier from `GET /api/v0/jobs`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Record not found\",\n  \"code\": \"not_found\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "f58b0587-d75a-4514-9ac2-08675479ae79",
+              "name": "Republishes an owned unpublished job without using the delete flow.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs",
+                    ":job_id",
+                    "publish"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "job_id",
+                      "description": "(Required) Job slug or identifier from `GET /api/v0/jobs`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"The job could not be published from its current state\",\n  \"code\": \"unprocessable_content\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "bf7e26e8-bade-4890-b7aa-61ef00640169",
+          "name": "Delete a job question",
+          "request": {
+            "name": "Delete a job question",
+            "description": {},
+            "url": {
+              "path": [
+                "api",
+                "v0",
+                "jobs",
+                ":job_id",
+                "questions",
+                ":id"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<integer>",
+                  "key": "id",
+                  "description": "(Required) Screening question ID or slug."
+                },
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "job_id",
+                  "description": "(Required) Job slug or identifier from `GET /api/v0/jobs`."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "DELETE",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "79190a7a-ddff-4ff6-9b81-eb03138c0e9f",
+              "name": "Deletes a screening question from a job by ID or slug.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs",
+                    ":job_id",
+                    "questions",
+                    ":id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<integer>",
+                      "key": "id",
+                      "description": "(Required) Screening question ID or slug."
+                    },
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "job_id",
+                      "description": "(Required) Job slug or identifier from `GET /api/v0/jobs`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "(Required) Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": \"ok\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "bef386c2-1928-4141-8d96-68073584939c",
+              "name": "Deletes a screening question from a job by ID or slug.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs",
+                    ":job_id",
+                    "questions",
+                    ":id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<integer>",
+                      "key": "id",
+                      "description": "(Required) Screening question ID or slug."
+                    },
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "job_id",
+                      "description": "(Required) Job slug or identifier from `GET /api/v0/jobs`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "(Required) Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Record not found\",\n  \"code\": \"not_found\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "5e77d940-0bf3-4b04-bd03-e071c85fe4f4",
+          "name": "Submit a job",
+          "request": {
+            "name": "Submit a job",
+            "description": {
+              "content": "Submit a draft or rejected job for moderation. A rejected job can also return to moderation when updated through `PUT /api/v0/jobs/{id}`.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "v0",
+                "jobs",
+                ":job_id",
+                "submit"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "job_id",
+                  "description": "(Required) Job slug or identifier from `GET /api/v0/jobs`."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "8ef7ff47-b343-4523-8ad1-ea3447d71902",
+              "name": "Submits a draft or rejected job for moderation approval.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs",
+                    ":job_id",
+                    "submit"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "job_id",
+                      "description": "(Required) Job slug or identifier from `GET /api/v0/jobs`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Accepted",
+              "code": 202,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": {\n    \"id\": \"javascript-ninja-user-170-santiago\",\n    \"type\": \"job\",\n    \"attributes\": {\n      \"title\": \"JavaScript Ninja\",\n      \"description_headline\": null,\n      \"description\": \"Build reliable products for technical hiring teams.\",\n      \"projects\": \"Build reliable products for technical hiring teams.\",\n      \"functions_headline\": null,\n      \"functions\": \"Build reliable products for technical hiring teams.\",\n      \"benefits_headline\": null,\n      \"benefits\": \"Build reliable products for technical hiring teams.\",\n      \"desirable_headline\": null,\n      \"desirable\": \"\",\n      \"remote\": false,\n      \"remote_modality\": \"no_remote\",\n      \"remote_zone\": null,\n      \"countries\": [\n        \"Chile\"\n      ],\n      \"lang\": \"lang_not_specified\",\n      \"rejected_reasons\": [],\n      \"category_name\": \"Programming\",\n      \"perks\": [],\n      \"min_salary\": 1500,\n      \"max_salary\": 2000,\n      \"published_at\": 0,\n      \"response_time_in_days\": {\n        \"min\": null,\n        \"max\": null\n      },\n      \"applications_count\": 0,\n      \"location_regions\": {\n        \"data\": []\n      },\n      \"location_tenants\": {\n        \"data\": []\n      },\n      \"location_cities\": {\n        \"data\": [\n          {\n            \"id\": 1,\n            \"type\": \"location_city\"\n          }\n        ]\n      },\n      \"modality\": {\n        \"data\": {\n          \"id\": 234,\n          \"type\": \"modality\"\n        }\n      },\n      \"seniority\": {\n        \"data\": {\n          \"id\": 243,\n          \"type\": \"seniority\"\n        }\n      },\n      \"tags\": {\n        \"data\": []\n      },\n      \"state\": \"submitted\",\n      \"deleted\": false,\n      \"questions\": {\n        \"data\": []\n      },\n      \"location_countries\": {\n        \"data\": []\n      },\n      \"submitted_at\": 1784217385,\n      \"created_at\": 1784217385,\n      \"updated_at\": 1784217385,\n      \"company_shell_id\": null\n    }\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "cede2984-05bc-4393-8a97-a4899af5c6f9",
+              "name": "Submits a draft or rejected job for moderation approval.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs",
+                    ":job_id",
+                    "submit"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "job_id",
+                      "description": "(Required) Job slug or identifier from `GET /api/v0/jobs`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"(Status 401) Unauthorized access to the API\",\n  \"code\": \"unauthorized\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "2b78bdbc-c9fe-4e4c-b6e7-28344b431f40",
+              "name": "Submits a draft or rejected job for moderation approval.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs",
+                    ":job_id",
+                    "submit"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "job_id",
+                      "description": "(Required) Job slug or identifier from `GET /api/v0/jobs`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Record not found\",\n  \"code\": \"not_found\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "9a001ef3-d8b7-4e99-be17-5f5c3ed7bf33",
+              "name": "Submits a draft or rejected job for moderation approval.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs",
+                    ":job_id",
+                    "submit"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "job_id",
+                      "description": "(Required) Job slug or identifier from `GET /api/v0/jobs`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"The job should be in draft or rejected state\",\n  \"code\": \"unprocessable_content\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "26237932-b9c8-4320-b1c4-474adbc662c6",
+          "name": "Unpublish a job",
+          "request": {
+            "name": "Unpublish a job",
+            "description": {
+              "content": "Use this for owned live jobs that should stop appearing publicly while staying available for later republishing.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "v0",
+                "jobs",
+                ":job_id",
+                "unpublish"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "job_id",
+                  "description": "(Required) Job slug or identifier from `GET /api/v0/jobs`."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "17c7fc92-7186-4028-b938-f8fed70e6b28",
+              "name": "Unpublishes an owned live job without hiding it, including board-only live jobs.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs",
+                    ":job_id",
+                    "unpublish"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "job_id",
+                      "description": "(Required) Job slug or identifier from `GET /api/v0/jobs`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": {\n    \"id\": \"javascript-ninja-user-286-santiago\",\n    \"type\": \"job\",\n    \"attributes\": {\n      \"title\": \"JavaScript Ninja\",\n      \"description_headline\": null,\n      \"description\": \"Build reliable products for technical hiring teams.\",\n      \"projects\": \"Build reliable products for technical hiring teams.\",\n      \"functions_headline\": null,\n      \"functions\": \"Build reliable products for technical hiring teams.\",\n      \"benefits_headline\": null,\n      \"benefits\": \"Build reliable products for technical hiring teams.\",\n      \"desirable_headline\": null,\n      \"desirable\": \"\",\n      \"remote\": false,\n      \"remote_modality\": \"no_remote\",\n      \"remote_zone\": null,\n      \"countries\": [\n        \"Chile\"\n      ],\n      \"lang\": \"lang_not_specified\",\n      \"rejected_reasons\": [],\n      \"category_name\": \"Programming\",\n      \"perks\": [],\n      \"min_salary\": 1500,\n      \"max_salary\": 2000,\n      \"published_at\": 1784217406,\n      \"response_time_in_days\": {\n        \"min\": null,\n        \"max\": null\n      },\n      \"applications_count\": 0,\n      \"location_regions\": {\n        \"data\": []\n      },\n      \"location_tenants\": {\n        \"data\": []\n      },\n      \"location_cities\": {\n        \"data\": [\n          {\n            \"id\": 1,\n            \"type\": \"location_city\"\n          }\n        ]\n      },\n      \"modality\": {\n        \"data\": {\n          \"id\": 329,\n          \"type\": \"modality\"\n        }\n      },\n      \"seniority\": {\n        \"data\": {\n          \"id\": 338,\n          \"type\": \"seniority\"\n        }\n      },\n      \"tags\": {\n        \"data\": []\n      },\n      \"state\": \"unpublished\",\n      \"company_shell_id\": null,\n      \"deleted\": false,\n      \"questions\": {\n        \"data\": []\n      },\n      \"location_countries\": {\n        \"data\": []\n      },\n      \"submitted_at\": 0,\n      \"created_at\": 1784217406,\n      \"updated_at\": 1784217406\n    }\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "f36d6f6b-2447-4594-b03e-b9e7b699eca3",
+              "name": "Unpublishes an owned live job without hiding it, including board-only live jobs.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs",
+                    ":job_id",
+                    "unpublish"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "job_id",
+                      "description": "(Required) Job slug or identifier from `GET /api/v0/jobs`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"(Status 401) Unauthorized access.\",\n  \"code\": \"unauthorized\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "27c9445f-5621-4363-a8dd-8300caccfcd0",
+              "name": "Unpublishes an owned live job without hiding it, including board-only live jobs.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs",
+                    ":job_id",
+                    "unpublish"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "job_id",
+                      "description": "(Required) Job slug or identifier from `GET /api/v0/jobs`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Record not found\",\n  \"code\": \"not_found\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "acd20090-4231-4a11-b9f4-f55df546a73d",
+              "name": "Unpublishes an owned live job without hiding it, including board-only live jobs.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "v0",
+                    "jobs",
+                    ":job_id",
+                    "unpublish"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "job_id",
+                      "description": "(Required) Job slug or identifier from `GET /api/v0/jobs`."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Bearer credential for the authentication scheme required by this endpoint.",
+                    "key": "Authorization",
+                    "value": "Bearer YOUR_API_KEY"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"The job could not be unpublished from its current state\",\n  \"code\": \"unprocessable_content\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://www.getonbrd.com",
+      "key": "baseUrl"
+    }
+  ],
+  "info": {
+    "_postman_id": "be0e8ec9-1c82-467e-b1c0-249728e40750",
+    "name": "Get on Board Applications Jobs API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "The Get on Board API provides access to the data inside Get on Board, the leading recruitment platform for tech professionals in Latin America.\n\nThere are two facets of the API:\n\n- **Public API** — Open to anyone. Access the same data visible on the platform without logging in: job categories, company profiles, published jobs, and a job search endpoint. No authentication required.\n- **Private API** — Requires authentication. Access your company's private data: jobs, recruitment processes, professionals, and applications. Available to companies with an active subscription plan that includes API access.\n\nBase URL: `https://www.getonbrd.com/api/v0/`\n\nFor bugs, improvement suggestions, or missing features, contact us at team@getonbrd.com.\n\n## Sandbox environment\n\nYou can test any endpoint using the sandbox environment:\n\n```\nhttps://sandbox.getonbrd.dev/api/v0/\n```\n\nWe strongly encourage you to test your API integrations against the sandbox before making live requests in production. The sandbox contains fake data, and certain features like payments may not work.\n\nIf your company wants to test the private API before subscribing, contact us at info@getonbrd.com or via the support chat to discuss temporary access.\n\n## Expanding responses\n\nMany endpoints support the `expand` query parameter to include full related resources instead of ID-only references.\n\n**Default (collapsed)** — Related objects return only `id` and `type`:\n\n```json\n{\n  \"job\": {\n    \"data\": { \"id\": 285, \"type\": \"job\" }\n  }\n}\n```\n\n**Expanded** — Pass `expand[]` to get the full resource with all attributes:\n\n```\nGET /api/v0/applications?expand[]=job&expand[]=professional\n```\n\nYou can expand multiple relationships in a single request. Nested expansion is supported with dot notation (e.g., `expand[]=job.tags`).\n\nSupported expand values vary by endpoint — refer to each endpoint's parameter documentation for available options.\n\n## Pagination and metadata\n\nMost list endpoints return paginated results with a `data` array and a `meta` object:\n\n```json\n{\n  \"data\": [ ... ],\n  \"meta\": {\n    \"page\": 1,\n    \"per_page\": 120,\n    \"total_pages\": 3\n  }\n}\n```\n\n| Parameter  | Type    | Default | Max | Description             |\n|------------|---------|---------|-----|-------------------------|\n| `page`     | integer | 1       | —   | Page number (min 1)     |\n| `per_page` | integer | 120     | 120 | Items per page (min 1)  |\n\nSome collection endpoints intentionally omit pagination metadata because they return bounded reference data or workflow state:\n\n- `GET /api/v0/perks`\n- `GET /api/v0/applications/discard_reasons`\n- `GET /api/v0/processes/{process_id}/phases`\n- `GET /api/v0/webhook_endpoints`\n- `GET /api/v0/webhook_events`\n- `GET /api/v0/matching_jobs` currently ignores `per_page` and omits pagination metadata.\n\n## Date filtering\n\nSome private endpoints support date range filtering using Unix epoch timestamps:\n\n| Parameter | Type    | Description                       |\n|-----------|---------|-----------------------------------|\n| `from`    | integer | Start date (epoch timestamp)      |\n| `to`      | integer | End date (epoch timestamp)        |\n\nInvalid date formats return a `422` error.\n\n## Localization\n\nAPI responses can be localized by setting a language preference. Supported locales: `en` (English), `es` (Spanish), `pt` (Portuguese).\n\n| Parameter | Type   | Description                     |\n|-----------|--------|---------------------------------|\n| `lang`    | string | Locale code: `en`, `es`, or `pt` |\n\nLanguage is resolved in this order:\n\n1. `lang` query parameter (e.g., `?lang=es`)\n2. `Accept-Language` HTTP header\n3. Authenticated user's language preference (private API only)\n4. Default locale\n\nLocalized fields include category names, perk descriptions, country names, and validation error messages. Use `?lang=en` to force English responses.\n\n## Companies Private API\n\nCollection of protected resources and endpoints a subscribed company has access to. Every request needs to be authenticated.\n\n> **Note:** Only companies with an active subscription plan can have access to the private API. The Companies Private API endpoints will return `404` if a subscription expires.\n\n### Authentication\n\nAuthenticate requests by sending the company API key in the `Authorization` header as `Bearer <api_key>`.\n\nThe key can be found in the company's profile page in Get on Board. Look for the section **API access** (`https://www.getonbrd.com/companies/[your-company]/api_settings`).\n\n### How the endpoints work together\n\nThe Companies Private API provides four interconnected endpoints that represent your complete recruitment workflow:\n\n**Jobs** (create postings) → **Applications** (receive candidates) → **Processes** (manage hiring) → **Professionals** (access profiles)\n\n### Core relationships\n\n- **Jobs**: Your job postings. The starting point that attracts candidates.\n- **Applications**: Generated when professionals apply to your jobs.\n- **Processes**: Structured hiring pipelines with phases (screening, interviews, etc.) that organize your recruitment workflow. A job can have multiple processes.\n- **Professionals**: Candidate profiles with detailed information.\n\n### Moving applications between phases\n\nTo move a candidate through your hiring pipeline:\n\n1. List your jobs with `GET /api/v0/jobs`.\n2. Pick a job and list its processes with `GET /api/v0/jobs/{job_id}/processes`. Use the job `id` string returned by `GET /api/v0/jobs`; this is normally a slug, not the numeric relationship ID embedded inside expanded process/job payloads.\n3. List applications for the process with `GET /api/v0/applications?process_id={process_id}`.\n4. Discover available target phases with `GET /api/v0/processes/{process_id}/phases`.\n5. If the target phase has `kind: \"discarded\"`, fetch valid reasons with `GET /api/v0/applications/discard_reasons`.\n6. Move the application with `PATCH /api/v0/applications/{application_id}/phase`.\n\nPhase IDs are numeric. Use a reason `id` from `GET /api/v0/applications/discard_reasons` as `discard_reason` when moving to a discarded phase. Moving an application back to a non-discarded phase clears its stored discard reason.\n\n### Multi-brand posting for ATS partners (company shells)\n\nRecruiting for many client companies through one integration? Authorized partner accounts can create\n**company shells** — public brand profiles (name, logo, description, own company page) for each client —\nand post jobs under those brands with a single API key:\n\n1. Create a shell with `POST /api/v0/company_shells` (a logo is required).\n2. Pass the shell's slug as `company_shell_id` on `POST /api/v0/jobs` or `PUT /api/v0/jobs/{id}`.\n3. The public job page, company profile, feeds, and public API show the client's brand; applications,\n   processes, and billing stay on your partner account.\n\nShell endpoints return `403` for non-partner API keys. Contact Get on Board to enable partner access\nfor your integration.\n\n### Key business rules\n\n- **Professional data access**: The Professionals endpoint has the strictest access controls. You can only access professional profiles when the professional is part of an active hiring process, the professional profile has been \"unlocked\", and you own the hiring process.\n- **Professionals are process-scoped**: Always include `process_id` when listing or retrieving professionals, for example `GET /api/v0/professionals?process_id=123` or `GET /api/v0/professionals/{id}?process_id=123`.\n- **Event payloads are starting points**: Webhook payloads and collapsed relationships identify resources, but some related endpoints still require additional scope such as `process_id`.\n- **Prefer canonical follow-up reads**: When starting from an event or collapsed payload, fetch the resource named by the payload first (for example `GET /api/v0/applications/{application_id}`), then use `expand[]` or process-scoped endpoints as needed.\n- **Data scoping**: All endpoints only return data belonging to your company (jobs you created, applications to your jobs, your hiring processes).\n- **Job moderation**: Jobs must be submitted via `POST /jobs/:id/submit` and approved before going live on the platform.\n- **Expandable relationships**: Use `expand[]=applications`, `expand[]=processes`, etc. to include related data and reduce API calls.\n\n### Read-only smoke test\n\nThe following sequence exercises the public API and the private company workflow without creating, updating, or deleting data:\n\n```bash\ncurl \"https://www.getonbrd.com/api/v0/categories?per_page=3&lang=en\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/jobs?per_page=3&lang=en\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/jobs/JOB_ID_FROM_LIST/processes\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/applications?process_id=PROCESS_ID&expand[]=job&expand[]=professional\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/applications/APPLICATION_ID?expand[]=professional\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/processes/PROCESS_ID/phases\"\ncurl -H \"Authorization: Bearer YOUR_API_KEY\" \"https://www.getonbrd.com/api/v0/professionals?process_id=PROCESS_ID&per_page=2\"\n```",
+      "type": "text/plain"
+    }
+  }
+}

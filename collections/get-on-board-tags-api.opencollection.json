@@ -1,0 +1,81 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Get on Board Applications Tags API",
+    "version": "0.1.0"
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Tags",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List tags",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://www.getonbrd.com/api/v0/tags",
+            "params": [
+              {
+                "name": "per_page",
+                "value": "1",
+                "type": "query",
+                "description": "Number of records per page. The default and maximum are usually 120 unless an endpoint documents a different behavior."
+              }
+            ]
+          },
+          "docs": "List tags"
+        },
+        {
+          "info": {
+            "name": "Get a tag",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://www.getonbrd.com/api/v0/tags/:id",
+            "params": [
+              {
+                "name": "id",
+                "value": "whatever",
+                "type": "path",
+                "description": "Tag slug from `GET /api/v0/tags`."
+              }
+            ]
+          },
+          "docs": "Get a tag"
+        },
+        {
+          "info": {
+            "name": "List jobs for a tag",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://www.getonbrd.com/api/v0/tags/:tag_id/jobs",
+            "params": [
+              {
+                "name": "per_page",
+                "value": "1",
+                "type": "query",
+                "description": "Number of records per page. The default and maximum are usually 120 unless an endpoint documents a different behavior."
+              },
+              {
+                "name": "tag_id",
+                "value": "ember-js",
+                "type": "path",
+                "description": "Tag slug from `GET /api/v0/tags`."
+              }
+            ]
+          },
+          "docs": "List jobs for a tag"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}
