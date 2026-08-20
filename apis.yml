@@ -38,6 +38,15 @@ modified: '2026-07-19'
 tags:
 - Company
 - Recruitment
+- Job
+- Hiring
+- ATS
+- Talent
+- Developers
+- Latin America
+tags_raw:
+- Company
+- Recruitment
 - Jobs
 - Hiring
 - ATS
@@ -51,6 +60,8 @@ apis:
   humanURL: https://www.getonbrd.com/api-doc.html
   baseURL: https://www.getonbrd.com/api/v0/
   tags:
+  - Application
+  tags_raw:
   - Applications
   properties:
   - type: OpenAPI
@@ -199,6 +210,8 @@ apis:
   humanURL: https://www.getonbrd.com/api-doc.html
   baseURL: https://www.getonbrd.com/api/v0/
   tags:
+  - Job
+  tags_raw:
   - Jobs
   properties:
   - type: OpenAPI
@@ -353,6 +366,8 @@ apis:
   humanURL: https://www.getonbrd.com/api-doc.html
   baseURL: https://www.getonbrd.com/api/v0/
   tags:
+  - Webhook
+  tags_raw:
   - Webhooks
   properties:
   - type: OpenAPI
