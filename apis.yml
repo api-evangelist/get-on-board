@@ -1,17 +1,14 @@
 aid: get-on-board
 name: Get On Board
-description: >-
-  Get on Board (getonbrd.com) is the leading tech-recruitment platform and
-  applicant tracking system (ATS) for Latin America, connecting companies with a
-  talent database of 1M+ technology professionals. Companies post jobs, run
-  structured hiring processes, and access candidate profiles. Get on Board
-  publishes a public REST API (v0) with an OpenAPI 3.0 specification, a sandbox
-  environment, outbound webhooks, and a first-party Ruby client library. The
-  public API exposes job categories, company profiles, published jobs, and a job
-  search endpoint with no authentication; a private Companies API (API-key
-  authenticated, subscription-gated) covers jobs, applications, hiring processes,
-  professionals, company shells, and webhook management. Surfaced as a portfolio
-  company of 500 Global and enriched by the API Evangelist pipeline.
+description: Get on Board (getonbrd.com) is the leading tech-recruitment platform and applicant tracking
+  system (ATS) for Latin America, connecting companies with a talent database of 1M+ technology professionals.
+  Companies post jobs, run structured hiring processes, and access candidate profiles. Get on Board publishes
+  a public REST API (v0) with an OpenAPI 3.0 specification, a sandbox environment, outbound webhooks,
+  and a first-party Ruby client library. The public API exposes job categories, company profiles, published
+  jobs, and a job search endpoint with no authentication; a private Companies API (API-key authenticated,
+  subscription-gated) covers jobs, applications, hiring processes, professionals, company shells, and
+  webhook management. Surfaced as a portfolio company of 500 Global and enriched by the API Evangelist
+  pipeline.
 url: https://raw.githubusercontent.com/api-evangelist/get-on-board/refs/heads/main/apis.yml
 deliveryModel:
   model: saas
@@ -46,7 +43,7 @@ x-tier: enriched
 x-tier-reason: portfolio-lead
 specificationVersion: '0.23'
 created: '2026-07-17'
-modified: '2026-07-19'
+modified: '2026-09-16'
 tags:
 - Company
 - Recruitment
@@ -97,7 +94,7 @@ apis:
   - type: APIReference
     url: https://www.getonbrd.com/api-doc.html
 - aid: get-on-board:get-on-board-board-api
-  name: Get On Board Board+ API
+  name: Get On Board+ API
   description: Private board integration
   humanURL: https://www.getonbrd.com/api-doc.html
   baseURL: https://www.getonbrd.com/api/v0/
@@ -140,15 +137,14 @@ apis:
     url: https://www.getonbrd.com/api-doc.html
 - aid: get-on-board:get-on-board-company-shells-api
   name: Get On Board Company shells API
-  description: >-
-    Post jobs under your client companies' brands from a single account. A company shell is a lightweight
-    public company profile (name, logo, description, its own `/companies/<slug>` page) owned by your partner
-    account. Create shells for the companies you recruit for, then pass a shell's slug as `company_shell_id`
-    when creating or updating a job: the public job page, company profile, feeds, and public API all show
-    the client's brand, while applications, hiring processes, and billing stay on your account. Built
-    for ATS integrations and agencies managing many client companies. Available to authorized partner
-    accounts only — other API keys receive 403; contact Get on Board to become a partner. Not related
-    to the public Companies endpoints.
+  description: 'Post jobs under your client companies'' brands from a single account. A company shell
+    is a lightweight public company profile (name, logo, description, its own `/companies/<slug>` page)
+    owned by your partner account. Create shells for the companies you recruit for, then pass a shell''s
+    slug as `company_shell_id` when creating or updating a job: the public job page, company profile,
+    feeds, and public API all show the client''s brand, while applications, hiring processes, and billing
+    stay on your account. Built for ATS integrations and agencies managing many client companies. Available
+    to authorized partner accounts only — other API keys receive 403; contact Get on Board to become a
+    partner. Not related to the public Companies endpoints.'
   humanURL: https://www.getonbrd.com/api-doc.html
   baseURL: https://www.getonbrd.com/api/v0/
   tags:
@@ -438,7 +434,10 @@ common:
   url: lifecycle/get-on-board-lifecycle.yml
 - type: X-MCPServerCandidate
   url: mcp/get-on-board-mcp.yml
-  note: 'Renamed from MCPServer 2026-09-03 (roadmap#247): the manifest self-describes as status: candidate — a tool list derived from the published API contracts, not an existing server. The scorer already read the manifest and reported mcp_server correctly; the MCPServer type was crediting the artifact-type surfaces with a server that does not exist.'
+  note: 'Renamed from MCPServer 2026-09-03 (roadmap#247): the manifest self-describes as status: candidate
+    — a tool list derived from the published API contracts, not an existing server. The scorer already
+    read the manifest and reported mcp_server correctly; the MCPServer type was crediting the artifact-type
+    surfaces with a server that does not exist.'
 - type: DataModel
   url: data-model/get-on-board-data-model.yml
 - type: Webhooks
