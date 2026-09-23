@@ -1,28 +1,7 @@
 {
   "provider": "get-on-board",
   "sources": [
-    "get-on-board-applications-api-openapi.yml",
-    "get-on-board-authentication-api-openapi.yml",
-    "get-on-board-board-api-openapi.yml",
-    "get-on-board-categories-api-openapi.yml",
-    "get-on-board-companies-api-openapi.yml",
-    "get-on-board-company-shells-api-openapi.yml",
-    "get-on-board-countries-api-openapi.yml",
-    "get-on-board-headcounts-api-openapi.yml",
-    "get-on-board-industries-api-openapi.yml",
-    "get-on-board-insights-api-openapi.yml",
-    "get-on-board-jobs-api-openapi.yml",
-    "get-on-board-matching-api-openapi.yml",
-    "get-on-board-modalities-api-openapi.yml",
-    "get-on-board-perks-api-openapi.yml",
-    "get-on-board-processes-api-openapi.yml",
-    "get-on-board-professionals-api-openapi.yml",
-    "get-on-board-regions-api-openapi.yml",
-    "get-on-board-search-api-openapi.yml",
-    "get-on-board-seniorities-api-openapi.yml",
-    "get-on-board-tags-api-openapi.yml",
-    "get-on-board-tenant-cities-api-openapi.yml",
-    "get-on-board-webhooks-api-openapi.yml"
+    "_original/get-on-board-openapi-original.yml"
   ],
   "outputs": [
     "get-on-board-applications-api-openapi.yml",
@@ -51,6 +30,33 @@
   "archived": [],
   "errors": [],
   "warnings": [],
-  "notes": [],
-  "skipped": []
+  "notes": [
+    "sourced from openapi/_original/ (1 archived document(s)); previously refined output at the top level was skipped rather than re-split",
+    "get-on-board-openapi-original.yml: upgraded openapi 3.0.3 -> OpenAPI 3.2.0",
+    "apis.yml register: already-registered"
+  ],
+  "skipped": [
+    "get-on-board-applications-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "get-on-board-authentication-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "get-on-board-board-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "get-on-board-categories-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "get-on-board-companies-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "get-on-board-company-shells-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "get-on-board-countries-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "get-on-board-headcounts-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "get-on-board-industries-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "get-on-board-insights-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "get-on-board-jobs-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "get-on-board-matching-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "get-on-board-modalities-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "get-on-board-perks-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "get-on-board-processes-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "get-on-board-professionals-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "get-on-board-regions-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "get-on-board-search-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "get-on-board-seniorities-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "get-on-board-tags-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "get-on-board-tenant-cities-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "get-on-board-webhooks-api-openapi.yml: previously refined output, superseded by openapi/_original/"
+  ]
 }
