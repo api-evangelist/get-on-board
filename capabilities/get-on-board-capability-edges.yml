@@ -1,0 +1,63 @@
+slug: get-on-board
+provider: Get On Board
+generated_by: planning/capability-mapping/scripts/classify_capabilities.py
+model: claude-opus-5
+frame:
+- Software & Technology
+min_confidence: 0.7
+capability_model:
+  source: https://github.com/vincentmakes/turbo-ea-capabilities
+  license: CC-BY-4.0
+  attribution: Turbo EA Capabilities by Vincent Verdet — Turbo EA, https://github.com/vincentmakes/turbo-ea-capabilities,
+    CC BY 4.0
+  notice: NOTICE
+edge_count: 5
+edges:
+- tag: Applications
+  spec_file: get-on-board-applications-api-openapi.yml
+  capability_id: BC-300.10
+  capability_id_l1: BC-300
+  capability_name: Talent Acquisition Management
+  confidence: 0.95
+  evidence: POST /api/v0/applications createApplication; PATCH /api/v0/applications/{application_id}/phase
+    "Move an application to another phase"; "List application discard reasons"
+  reason: Candidate job applications progressing through hiring pipeline phases with discard reasons —
+    this is applicant tracking, i.e. sourcing/recruiting/hiring under Talent Acquisition Management.
+- tag: Jobs
+  spec_file: get-on-board-jobs-api-openapi.yml
+  capability_id: BC-300.10
+  capability_id_l1: BC-300
+  capability_name: Talent Acquisition Management
+  confidence: 0.95
+  evidence: POST /api/v0/jobs "Create a job"; POST /api/v0/jobs/{job_id}/publish "Republish a job"; GET
+    /api/v0/jobs/{job_id}/processes "List job processes"; DELETE /api/v0/jobs/{job_id}/questions/{id}
+    "Delete a job question"
+  reason: Full lifecycle of job requisitions/postings including publish/unpublish, hiring processes and
+    screening questions — core Talent Acquisition (recruiting) functionality.
+- tag: Professionals
+  spec_file: get-on-board-professionals-api-openapi.yml
+  capability_id: BC-300.10
+  capability_id_l1: BC-300
+  capability_name: Talent Acquisition Management
+  confidence: 0.85
+  evidence: GET /api/v0/professionals/{id}  retrieveProfessional  Retrieve a professional
+  reason: Access to the candidate/talent database of technology professionals is candidate sourcing data
+    for recruiting, squarely Talent Acquisition Management.
+- tag: Webhooks
+  spec_file: get-on-board-webhooks-api-openapi.yml
+  capability_id: BC-4270.80
+  capability_id_l1: BC-4270
+  capability_name: Webhook & Event Subscription Management
+  confidence: 0.85
+  evidence: POST /api/v0/webhook_endpoints  createWebhookEndpoint  Create a webhook endpoint
+  reason: Full CRUD over outbound webhook endpoints plus listing of webhook events is exactly outbound
+    webhook/event subscription lifecycle management on the vendor's public API platform.
+- tag: Processes
+  spec_file: get-on-board-processes-api-openapi.yml
+  capability_id: BC-300.10
+  capability_id_l1: BC-300
+  capability_name: Talent Acquisition Management
+  confidence: 0.82
+  evidence: GET /api/v0/processes/{process_id}/phases  listProcessPhases  List process phases
+  reason: On this ATS, 'processes' are structured hiring processes with phases (pipeline stages), i.e.
+    recruiting execution — Talent Acquisition Management. Not generic business process management.
